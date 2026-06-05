@@ -20,6 +20,7 @@ import {
   User,
   Layers,
   Sparkles,
+  type LucideIcon,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -36,54 +37,66 @@ import {
 } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
 
-const websiteTypes = [
-  { id: 'local-business', name: 'Local Business', icon: Store, basePrice: 4999 },
-  { id: 'restaurant', name: 'Restaurant', icon: UtensilsCrossed, basePrice: 7999 },
-  { id: 'cafe', name: 'Cafe', icon: Coffee, basePrice: 7999 },
-  { id: 'hotel', name: 'Hotel', icon: Hotel, basePrice: 12999 },
-  { id: 'hospital', name: 'Hospital', icon: Stethoscope, basePrice: 9999 },
-  { id: 'gym', name: 'Gym', icon: Dumbbell, basePrice: 8999 },
-  { id: 'school', name: 'School', icon: GraduationCap, basePrice: 14999 },
-  { id: 'business', name: 'Business', icon: Briefcase, basePrice: 14999 },
-  { id: 'ecommerce', name: 'E-Commerce', icon: ShoppingCart, basePrice: 24999 },
-]
+const iconMap: Record<string, LucideIcon> = {
+  Store,
+  UtensilsCrossed,
+  Coffee,
+  Hotel,
+  Stethoscope,
+  Dumbbell,
+  GraduationCap,
+  Briefcase,
+  ShoppingCart,
+}
 
-const pageOptions = [
-  { id: '1page', label: '1 Page', description: 'Single page website', extra: 0 },
-  { id: '5pages', label: '5 Pages', description: 'Small multi-page site', extra: 2000 },
-  { id: '10pages', label: '10 Pages', description: 'Medium multi-page site', extra: 5000 },
-  { id: '15pages', label: '15 Pages', description: 'Large multi-page site', extra: 8000 },
-  { id: 'custom-pages', label: 'Custom', description: 'Fully custom pages', extra: 12000 },
-]
+// Types from API
+interface CategoryData {
+  id: string
+  name: string
+  slug: string
+  icon: string
+  basePrice: number
+  features: string
+  order: number
+}
 
-const addOns = [
-  { id: 'payment-gateway', name: 'Payment Gateway', price: 3000 },
-  { id: 'ai-chatbot', name: 'AI Chatbot', price: 5000 },
-  { id: 'voice-ai', name: 'Voice AI Assistant', price: 10000 },
-  { id: 'food-ordering', name: 'Online Food Ordering', price: 5000 },
-  { id: 'hotel-booking', name: 'Hotel Room Booking', price: 6000 },
-  { id: 'appointment-booking', name: 'Appointment Booking', price: 4000 },
-  { id: 'admin-dashboard', name: 'Admin Dashboard', price: 7000 },
-  { id: 'customer-login', name: 'Customer Login System', price: 5000 },
-  { id: 'inventory', name: 'Inventory Management', price: 10000 },
-  { id: 'whatsapp-automation', name: 'WhatsApp Automation', price: 3500 },
-  { id: 'email-automation', name: 'Email Automation', price: 3000 },
-  { id: 'sms-notifications', name: 'SMS Notifications', price: 4000 },
-  { id: 'multi-language', name: 'Multi-Language Website', price: 3000 },
-  { id: 'google-reviews', name: 'Google Reviews Integration', price: 1500 },
-  { id: 'social-media', name: 'Social Media Integration', price: 1500 },
-  { id: 'advanced-seo', name: 'Advanced SEO', price: 5000 },
-  { id: 'google-business', name: 'Google Business Profile Setup', price: 2500 },
-  { id: 'speed-optimization', name: 'Speed Optimization', price: 2000 },
-  { id: 'security-setup', name: 'Security Setup', price: 2000 },
-  { id: 'hosting-setup', name: 'Hosting Setup', price: 3000 },
-  { id: 'domain-setup', name: 'Domain Setup', price: 1000 },
-  { id: 'blog-system', name: 'Blog System', price: 3000 },
-  { id: 'portfolio-system', name: 'Portfolio System', price: 2500 },
-  { id: 'analytics-dashboard', name: 'Analytics Dashboard', price: 2500 },
-  { id: 'live-chat', name: 'Live Chat Support', price: 2000 },
-  { id: 'custom-forms', name: 'Custom Forms', price: 1500 },
-]
+interface AddOnData {
+  id: string
+  name: string
+  slug: string
+  price: number
+  order: number
+}
+
+interface PageOptionData {
+  id: string
+  label: string
+  slug: string
+  description: string
+  extraPrice: number
+  order: number
+}
+
+// Mapped display types
+interface WebsiteType {
+  id: string
+  name: string
+  icon: LucideIcon
+  basePrice: number
+}
+
+interface PageOptionDisplay {
+  id: string
+  label: string
+  description: string
+  extra: number
+}
+
+interface AddOnDisplay {
+  id: string
+  name: string
+  price: number
+}
 
 const steps = [
   { id: 1, title: 'Website Type', icon: Layers },
@@ -91,18 +104,6 @@ const steps = [
   { id: 3, title: 'Add-ons', icon: Sparkles },
   { id: 4, title: 'Details', icon: User },
 ]
-
-const categoryMap: Record<string, string> = {
-  'Local Business': 'local-business',
-  Restaurant: 'restaurant',
-  Cafe: 'cafe',
-  Hotel: 'hotel',
-  Hospital: 'hospital',
-  Gym: 'gym',
-  School: 'school',
-  Business: 'business',
-  'E-Commerce': 'ecommerce',
-}
 
 export function Configurator() {
   const [currentStep, setCurrentStep] = useState(1)
@@ -121,13 +122,82 @@ export function Configurator() {
     projectDescription: '',
   })
 
+  // API data state
+  const [websiteTypes, setWebsiteTypes] = useState<WebsiteType[]>([])
+  const [pageOptions, setPageOptions] = useState<PageOptionDisplay[]>([])
+  const [addOns, setAddOns] = useState<AddOnDisplay[]>([])
+  const [loading, setLoading] = useState(true)
+
+  // Build categoryMap from fetched data
+  const categoryMap = useCallback((): Record<string, string> => {
+    const map: Record<string, string> = {}
+    for (const type of websiteTypes) {
+      map[type.name] = type.id
+    }
+    return map
+  }, [websiteTypes])
+
+  // Fetch data from API
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const [catRes, addonRes, pageRes] = await Promise.all([
+          fetch('/api/categories'),
+          fetch('/api/addons'),
+          fetch('/api/pages'),
+        ])
+
+        if (catRes.ok) {
+          const catData: CategoryData[] = await catRes.json()
+          setWebsiteTypes(
+            catData.map((cat) => ({
+              id: cat.slug,
+              name: cat.name,
+              icon: iconMap[cat.icon] ?? Store,
+              basePrice: cat.basePrice,
+            }))
+          )
+        }
+
+        if (addonRes.ok) {
+          const addonData: AddOnData[] = await addonRes.json()
+          setAddOns(
+            addonData.map((a) => ({
+              id: a.slug,
+              name: a.name,
+              price: a.price,
+            }))
+          )
+        }
+
+        if (pageRes.ok) {
+          const pageData: PageOptionData[] = await pageRes.json()
+          setPageOptions(
+            pageData.map((p) => ({
+              id: p.slug,
+              label: p.label,
+              description: p.description,
+              extra: p.extraPrice,
+            }))
+          )
+        }
+      } catch (e) {
+        console.error('Failed to fetch configurator data:', e)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchData()
+  }, [])
+
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true, margin: '-100px' })
 
   // Listen for preselect-category event
   useEffect(() => {
     const handler = (e: CustomEvent) => {
-      const categoryId = categoryMap[e.detail]
+      const map = categoryMap()
+      const categoryId = map[e.detail]
       if (categoryId) {
         setSelectedType(categoryId)
         setCurrentStep(1)
@@ -136,7 +206,7 @@ export function Configurator() {
     window.addEventListener('preselect-category', handler as EventListener)
     return () =>
       window.removeEventListener('preselect-category', handler as EventListener)
-  }, [])
+  }, [categoryMap])
 
   const selectedTypeData = websiteTypes.find((t) => t.id === selectedType)
   const selectedPagesData = pageOptions.find((p) => p.id === selectedPages)
@@ -264,341 +334,348 @@ Project Description: ${formData.projectDescription || 'N/A'}`
 
               <Card className="bg-card/80 backdrop-blur-sm border border-border/50 shadow-lg">
                 <CardContent className="p-6 md:p-8">
-                  <AnimatePresence mode="wait">
-                    {/* Step 1: Select Website Type */}
-                    {currentStep === 1 && (
-                      <motion.div
-                        key="step1"
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -20 }}
-                        transition={{ duration: 0.3 }}
-                      >
-                        <h3 className="text-xl font-serif font-semibold mb-6">
-                          Select Your Website Type
-                        </h3>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                          {websiteTypes.map((type) => (
-                            <button
-                              key={type.id}
-                              onClick={() => setSelectedType(type.id)}
-                              className={`p-4 rounded-xl border-2 text-left transition-all duration-200 hover:shadow-md ${
-                                selectedType === type.id
-                                  ? 'border-primary bg-primary/5 shadow-md'
-                                  : 'border-border hover:border-primary/30'
-                              }`}
-                            >
-                              <type.icon
-                                className={`h-8 w-8 mb-2 ${
+                  {loading ? (
+                    <div className="flex items-center justify-center py-12">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+                      <span className="ml-3 text-muted-foreground">Loading options...</span>
+                    </div>
+                  ) : (
+                    <AnimatePresence mode="wait">
+                      {/* Step 1: Select Website Type */}
+                      {currentStep === 1 && (
+                        <motion.div
+                          key="step1"
+                          initial={{ opacity: 0, x: 20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, x: -20 }}
+                          transition={{ duration: 0.3 }}
+                        >
+                          <h3 className="text-xl font-serif font-semibold mb-6">
+                            Select Your Website Type
+                          </h3>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                            {websiteTypes.map((type) => (
+                              <button
+                                key={type.id}
+                                onClick={() => setSelectedType(type.id)}
+                                className={`p-4 rounded-xl border-2 text-left transition-all duration-200 hover:shadow-md ${
                                   selectedType === type.id
-                                    ? 'text-primary'
-                                    : 'text-muted-foreground'
+                                    ? 'border-primary bg-primary/5 shadow-md'
+                                    : 'border-border hover:border-primary/30'
                                 }`}
-                              />
-                              <div className="font-medium text-sm">
-                                {type.name}
-                              </div>
-                              <div className="text-primary font-bold text-lg mt-1">
-                                ₹{type.basePrice.toLocaleString('en-IN')}
-                              </div>
-                            </button>
-                          ))}
-                        </div>
-                      </motion.div>
-                    )}
-
-                    {/* Step 2: Select Pages */}
-                    {currentStep === 2 && (
-                      <motion.div
-                        key="step2"
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -20 }}
-                        transition={{ duration: 0.3 }}
-                      >
-                        <h3 className="text-xl font-serif font-semibold mb-6">
-                          Select Number of Pages
-                        </h3>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                          {pageOptions.map((option) => (
-                            <button
-                              key={option.id}
-                              onClick={() => setSelectedPages(option.id)}
-                              className={`p-5 rounded-xl border-2 text-left transition-all duration-200 hover:shadow-md ${
-                                selectedPages === option.id
-                                  ? 'border-primary bg-primary/5 shadow-md'
-                                  : 'border-border hover:border-primary/30'
-                              }`}
-                            >
-                              <div className="font-semibold text-lg">
-                                {option.label}
-                              </div>
-                              <div className="text-sm text-muted-foreground mt-1">
-                                {option.description}
-                              </div>
-                              <div className="mt-2 text-primary font-bold">
-                                {option.extra === 0
-                                  ? 'Included'
-                                  : `+₹${option.extra.toLocaleString('en-IN')}`}
-                              </div>
-                            </button>
-                          ))}
-                        </div>
-                      </motion.div>
-                    )}
-
-                    {/* Step 3: Select Add-ons */}
-                    {currentStep === 3 && (
-                      <motion.div
-                        key="step3"
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -20 }}
-                        transition={{ duration: 0.3 }}
-                      >
-                        <h3 className="text-xl font-serif font-semibold mb-6">
-                          Select Add-ons
-                        </h3>
-                        <p className="text-sm text-muted-foreground mb-4">
-                          Enhance your website with powerful features
-                        </p>
-                        <div className="space-y-2 max-h-[450px] overflow-y-auto custom-scrollbar pr-2">
-                          {addOns.map((addon) => (
-                            <div
-                              key={addon.id}
-                              onClick={() => toggleAddOn(addon.id)}
-                              className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-all duration-200 ${
-                                selectedAddOns.includes(addon.id)
-                                  ? 'border-primary bg-primary/5'
-                                  : 'border-border hover:border-primary/30'
-                              }`}
-                            >
-                              <div className="flex items-center gap-3">
-                                <Checkbox
-                                  checked={selectedAddOns.includes(addon.id)}
-                                  onCheckedChange={() => toggleAddOn(addon.id)}
-                                  onClick={(e) => e.stopPropagation()}
+                              >
+                                <type.icon
+                                  className={`h-8 w-8 mb-2 ${
+                                    selectedType === type.id
+                                      ? 'text-primary'
+                                      : 'text-muted-foreground'
+                                  }`}
                                 />
-                                <span className="text-sm font-medium">
-                                  {addon.name}
+                                <div className="font-medium text-sm">
+                                  {type.name}
+                                </div>
+                                <div className="text-primary font-bold text-lg mt-1">
+                                  ₹{type.basePrice.toLocaleString('en-IN')}
+                                </div>
+                              </button>
+                            ))}
+                          </div>
+                        </motion.div>
+                      )}
+
+                      {/* Step 2: Select Pages */}
+                      {currentStep === 2 && (
+                        <motion.div
+                          key="step2"
+                          initial={{ opacity: 0, x: 20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, x: -20 }}
+                          transition={{ duration: 0.3 }}
+                        >
+                          <h3 className="text-xl font-serif font-semibold mb-6">
+                            Select Number of Pages
+                          </h3>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                            {pageOptions.map((option) => (
+                              <button
+                                key={option.id}
+                                onClick={() => setSelectedPages(option.id)}
+                                className={`p-5 rounded-xl border-2 text-left transition-all duration-200 hover:shadow-md ${
+                                  selectedPages === option.id
+                                    ? 'border-primary bg-primary/5 shadow-md'
+                                    : 'border-border hover:border-primary/30'
+                                }`}
+                              >
+                                <div className="font-semibold text-lg">
+                                  {option.label}
+                                </div>
+                                <div className="text-sm text-muted-foreground mt-1">
+                                  {option.description}
+                                </div>
+                                <div className="mt-2 text-primary font-bold">
+                                  {option.extra === 0
+                                    ? 'Included'
+                                    : `+₹${option.extra.toLocaleString('en-IN')}`}
+                                </div>
+                              </button>
+                            ))}
+                          </div>
+                        </motion.div>
+                      )}
+
+                      {/* Step 3: Select Add-ons */}
+                      {currentStep === 3 && (
+                        <motion.div
+                          key="step3"
+                          initial={{ opacity: 0, x: 20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, x: -20 }}
+                          transition={{ duration: 0.3 }}
+                        >
+                          <h3 className="text-xl font-serif font-semibold mb-6">
+                            Select Add-ons
+                          </h3>
+                          <p className="text-sm text-muted-foreground mb-4">
+                            Enhance your website with powerful features
+                          </p>
+                          <div className="space-y-2 max-h-[450px] overflow-y-auto custom-scrollbar pr-2">
+                            {addOns.map((addon) => (
+                              <div
+                                key={addon.id}
+                                onClick={() => toggleAddOn(addon.id)}
+                                className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-all duration-200 ${
+                                  selectedAddOns.includes(addon.id)
+                                    ? 'border-primary bg-primary/5'
+                                    : 'border-border hover:border-primary/30'
+                                }`}
+                              >
+                                <div className="flex items-center gap-3">
+                                  <Checkbox
+                                    checked={selectedAddOns.includes(addon.id)}
+                                    onCheckedChange={() => toggleAddOn(addon.id)}
+                                    onClick={(e) => e.stopPropagation()}
+                                  />
+                                  <span className="text-sm font-medium">
+                                    {addon.name}
+                                  </span>
+                                </div>
+                                <span className="text-sm font-semibold text-primary">
+                                  +₹{addon.price.toLocaleString('en-IN')}
                                 </span>
                               </div>
-                              <span className="text-sm font-semibold text-primary">
-                                +₹{addon.price.toLocaleString('en-IN')}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      </motion.div>
-                    )}
+                            ))}
+                          </div>
+                        </motion.div>
+                      )}
 
-                    {/* Step 4: Client Information */}
-                    {currentStep === 4 && (
-                      <motion.div
-                        key="step4"
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -20 }}
-                        transition={{ duration: 0.3 }}
-                      >
-                        <h3 className="text-xl font-serif font-semibold mb-6">
-                          Your Information
-                        </h3>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <Label htmlFor="fullName">
-                              Full Name <span className="text-destructive">*</span>
+                      {/* Step 4: Client Information */}
+                      {currentStep === 4 && (
+                        <motion.div
+                          key="step4"
+                          initial={{ opacity: 0, x: 20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, x: -20 }}
+                          transition={{ duration: 0.3 }}
+                        >
+                          <h3 className="text-xl font-serif font-semibold mb-6">
+                            Your Information
+                          </h3>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                              <Label htmlFor="fullName">
+                                Full Name <span className="text-destructive">*</span>
+                              </Label>
+                              <Input
+                                id="fullName"
+                                placeholder="John Doe"
+                                value={formData.fullName}
+                                onChange={(e) =>
+                                  setFormData((p) => ({
+                                    ...p,
+                                    fullName: e.target.value,
+                                  }))
+                                }
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor="businessName">
+                                Business Name{' '}
+                                <span className="text-destructive">*</span>
+                              </Label>
+                              <Input
+                                id="businessName"
+                                placeholder="Your Business Name"
+                                value={formData.businessName}
+                                onChange={(e) =>
+                                  setFormData((p) => ({
+                                    ...p,
+                                    businessName: e.target.value,
+                                  }))
+                                }
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor="mobileNumber">
+                                Mobile Number{' '}
+                                <span className="text-destructive">*</span>
+                              </Label>
+                              <Input
+                                id="mobileNumber"
+                                placeholder="+91 99999 99999"
+                                value={formData.mobileNumber}
+                                onChange={(e) =>
+                                  setFormData((p) => ({
+                                    ...p,
+                                    mobileNumber: e.target.value,
+                                  }))
+                                }
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor="whatsappNumber">
+                                WhatsApp Number
+                              </Label>
+                              <Input
+                                id="whatsappNumber"
+                                placeholder="+91 99999 99999"
+                                value={formData.whatsappNumber}
+                                onChange={(e) =>
+                                  setFormData((p) => ({
+                                    ...p,
+                                    whatsappNumber: e.target.value,
+                                  }))
+                                }
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor="email">
+                                Email Address{' '}
+                                <span className="text-destructive">*</span>
+                              </Label>
+                              <Input
+                                id="email"
+                                type="email"
+                                placeholder="hello@example.com"
+                                value={formData.email}
+                                onChange={(e) =>
+                                  setFormData((p) => ({
+                                    ...p,
+                                    email: e.target.value,
+                                  }))
+                                }
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor="city">City</Label>
+                              <Input
+                                id="city"
+                                placeholder="Mumbai"
+                                value={formData.city}
+                                onChange={(e) =>
+                                  setFormData((p) => ({
+                                    ...p,
+                                    city: e.target.value,
+                                  }))
+                                }
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor="businessCategory">
+                                Business Category
+                              </Label>
+                              <Select
+                                value={formData.businessCategory}
+                                onValueChange={(val) =>
+                                  setFormData((p) => ({
+                                    ...p,
+                                    businessCategory: val,
+                                  }))
+                                }
+                              >
+                                <SelectTrigger id="businessCategory">
+                                  <SelectValue placeholder="Select category" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="restaurant">
+                                    Restaurant
+                                  </SelectItem>
+                                  <SelectItem value="cafe">Cafe</SelectItem>
+                                  <SelectItem value="hotel">Hotel</SelectItem>
+                                  <SelectItem value="hospital">
+                                    Hospital
+                                  </SelectItem>
+                                  <SelectItem value="gym">Gym</SelectItem>
+                                  <SelectItem value="school">School</SelectItem>
+                                  <SelectItem value="local-business">
+                                    Local Business
+                                  </SelectItem>
+                                  <SelectItem value="corporate">
+                                    Corporate
+                                  </SelectItem>
+                                  <SelectItem value="ecommerce">
+                                    E-Commerce
+                                  </SelectItem>
+                                  <SelectItem value="other">Other</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor="estimatedBudget">
+                                Estimated Budget
+                              </Label>
+                              <Select
+                                value={formData.estimatedBudget}
+                                onValueChange={(val) =>
+                                  setFormData((p) => ({
+                                    ...p,
+                                    estimatedBudget: val,
+                                  }))
+                                }
+                              >
+                                <SelectTrigger id="estimatedBudget">
+                                  <SelectValue placeholder="Select budget range" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="under-10k">
+                                    Under ₹10,000
+                                  </SelectItem>
+                                  <SelectItem value="10k-25k">
+                                    ₹10,000 - ₹25,000
+                                  </SelectItem>
+                                  <SelectItem value="25k-50k">
+                                    ₹25,000 - ₹50,000
+                                  </SelectItem>
+                                  <SelectItem value="50k-1l">
+                                    ₹50,000 - ₹1,00,000
+                                  </SelectItem>
+                                  <SelectItem value="above-1l">
+                                    Above ₹1,00,000
+                                  </SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
+                          <div className="mt-4 space-y-2">
+                            <Label htmlFor="projectDescription">
+                              Project Description
                             </Label>
-                            <Input
-                              id="fullName"
-                              placeholder="John Doe"
-                              value={formData.fullName}
+                            <Textarea
+                              id="projectDescription"
+                              placeholder="Tell us about your project requirements..."
+                              rows={4}
+                              value={formData.projectDescription}
                               onChange={(e) =>
                                 setFormData((p) => ({
                                   ...p,
-                                  fullName: e.target.value,
+                                  projectDescription: e.target.value,
                                 }))
                               }
                             />
                           </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="businessName">
-                              Business Name{' '}
-                              <span className="text-destructive">*</span>
-                            </Label>
-                            <Input
-                              id="businessName"
-                              placeholder="Your Business Name"
-                              value={formData.businessName}
-                              onChange={(e) =>
-                                setFormData((p) => ({
-                                  ...p,
-                                  businessName: e.target.value,
-                                }))
-                              }
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="mobileNumber">
-                              Mobile Number{' '}
-                              <span className="text-destructive">*</span>
-                            </Label>
-                            <Input
-                              id="mobileNumber"
-                              placeholder="+91 99999 99999"
-                              value={formData.mobileNumber}
-                              onChange={(e) =>
-                                setFormData((p) => ({
-                                  ...p,
-                                  mobileNumber: e.target.value,
-                                }))
-                              }
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="whatsappNumber">
-                              WhatsApp Number
-                            </Label>
-                            <Input
-                              id="whatsappNumber"
-                              placeholder="+91 99999 99999"
-                              value={formData.whatsappNumber}
-                              onChange={(e) =>
-                                setFormData((p) => ({
-                                  ...p,
-                                  whatsappNumber: e.target.value,
-                                }))
-                              }
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="email">
-                              Email Address{' '}
-                              <span className="text-destructive">*</span>
-                            </Label>
-                            <Input
-                              id="email"
-                              type="email"
-                              placeholder="hello@example.com"
-                              value={formData.email}
-                              onChange={(e) =>
-                                setFormData((p) => ({
-                                  ...p,
-                                  email: e.target.value,
-                                }))
-                              }
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="city">City</Label>
-                            <Input
-                              id="city"
-                              placeholder="Mumbai"
-                              value={formData.city}
-                              onChange={(e) =>
-                                setFormData((p) => ({
-                                  ...p,
-                                  city: e.target.value,
-                                }))
-                              }
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="businessCategory">
-                              Business Category
-                            </Label>
-                            <Select
-                              value={formData.businessCategory}
-                              onValueChange={(val) =>
-                                setFormData((p) => ({
-                                  ...p,
-                                  businessCategory: val,
-                                }))
-                              }
-                            >
-                              <SelectTrigger id="businessCategory">
-                                <SelectValue placeholder="Select category" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="restaurant">
-                                  Restaurant
-                                </SelectItem>
-                                <SelectItem value="cafe">Cafe</SelectItem>
-                                <SelectItem value="hotel">Hotel</SelectItem>
-                                <SelectItem value="hospital">
-                                  Hospital
-                                </SelectItem>
-                                <SelectItem value="gym">Gym</SelectItem>
-                                <SelectItem value="school">School</SelectItem>
-                                <SelectItem value="local-business">
-                                  Local Business
-                                </SelectItem>
-                                <SelectItem value="corporate">
-                                  Corporate
-                                </SelectItem>
-                                <SelectItem value="ecommerce">
-                                  E-Commerce
-                                </SelectItem>
-                                <SelectItem value="other">Other</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="estimatedBudget">
-                              Estimated Budget
-                            </Label>
-                            <Select
-                              value={formData.estimatedBudget}
-                              onValueChange={(val) =>
-                                setFormData((p) => ({
-                                  ...p,
-                                  estimatedBudget: val,
-                                }))
-                              }
-                            >
-                              <SelectTrigger id="estimatedBudget">
-                                <SelectValue placeholder="Select budget range" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="under-10k">
-                                  Under ₹10,000
-                                </SelectItem>
-                                <SelectItem value="10k-25k">
-                                  ₹10,000 - ₹25,000
-                                </SelectItem>
-                                <SelectItem value="25k-50k">
-                                  ₹25,000 - ₹50,000
-                                </SelectItem>
-                                <SelectItem value="50k-1l">
-                                  ₹50,000 - ₹1,00,000
-                                </SelectItem>
-                                <SelectItem value="above-1l">
-                                  Above ₹1,00,000
-                                </SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        </div>
-                        <div className="mt-4 space-y-2">
-                          <Label htmlFor="projectDescription">
-                            Project Description
-                          </Label>
-                          <Textarea
-                            id="projectDescription"
-                            placeholder="Tell us about your project requirements..."
-                            rows={4}
-                            value={formData.projectDescription}
-                            onChange={(e) =>
-                              setFormData((p) => ({
-                                ...p,
-                                projectDescription: e.target.value,
-                              }))
-                            }
-                          />
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  )}
 
                   {/* Navigation Buttons */}
                   <div className="flex items-center justify-between mt-8">

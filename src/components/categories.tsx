@@ -1,7 +1,7 @@
 'use client'
 
 import { motion, useInView } from 'framer-motion'
-import { useRef } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import {
   Store,
   UtensilsCrossed,
@@ -12,66 +12,39 @@ import {
   GraduationCap,
   Briefcase,
   ShoppingCart,
+  type LucideIcon,
 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 
-const categories = [
-  {
-    icon: Store,
-    name: 'Local Business',
-    price: 4999,
-    features: ['Shops', 'Salons', 'Clinics', 'Local Services'],
-  },
-  {
-    icon: UtensilsCrossed,
-    name: 'Restaurant',
-    price: 7999,
-    features: ['Digital Menu', 'WhatsApp Orders', 'Food Gallery', 'Contact'],
-  },
-  {
-    icon: Coffee,
-    name: 'Cafe',
-    price: 7999,
-    features: ['Menu Showcase', 'Online Inquiry', 'Gallery', 'Google Maps'],
-  },
-  {
-    icon: Hotel,
-    name: 'Hotel',
-    price: 12999,
-    features: ['Room Listings', 'Inquiry System', 'Amenities', 'Gallery'],
-  },
-  {
-    icon: Stethoscope,
-    name: 'Hospital',
-    price: 9999,
-    features: ['Doctor Profiles', 'Appointment Booking', 'Services', 'Emergency Contact'],
-  },
-  {
-    icon: Dumbbell,
-    name: 'Gym',
-    price: 8999,
-    features: ['Membership Plans', 'Trainer Profiles', 'Gallery', 'Contact Forms'],
-  },
-  {
-    icon: GraduationCap,
-    name: 'School',
-    price: 14999,
-    features: ['Admissions', 'Staff Information', 'Announcements', 'Gallery'],
-  },
-  {
-    icon: Briefcase,
-    name: 'Business',
-    price: 14999,
-    features: ['Services', 'Lead Generation', 'Contact Forms', 'SEO Setup'],
-  },
-  {
-    icon: ShoppingCart,
-    name: 'E-Commerce',
-    price: 24999,
-    features: ['Products', 'Cart', 'Checkout', 'Customer Accounts'],
-  },
-]
+const iconMap: Record<string, LucideIcon> = {
+  Store,
+  UtensilsCrossed,
+  Coffee,
+  Hotel,
+  Stethoscope,
+  Dumbbell,
+  GraduationCap,
+  Briefcase,
+  ShoppingCart,
+}
+
+interface CategoryData {
+  id: string
+  name: string
+  slug: string
+  icon: string
+  basePrice: number
+  features: string
+  order: number
+}
+
+interface CategoryDisplay {
+  icon: LucideIcon
+  name: string
+  price: number
+  features: string[]
+}
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -89,6 +62,31 @@ const cardVariants = {
 export function Categories() {
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true, margin: '-100px' })
+  const [categories, setCategories] = useState<CategoryDisplay[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function fetchCategories() {
+      try {
+        const res = await fetch('/api/categories')
+        if (res.ok) {
+          const data: CategoryData[] = await res.json()
+          const mapped: CategoryDisplay[] = data.map((cat) => ({
+            icon: iconMap[cat.icon] ?? Store,
+            name: cat.name,
+            price: cat.basePrice,
+            features: cat.features.split(',').map((f) => f.trim()),
+          }))
+          setCategories(mapped)
+        }
+      } catch (e) {
+        console.error('Failed to fetch categories:', e)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchCategories()
+  }, [])
 
   const handleGetStarted = (categoryName: string) => {
     const element = document.getElementById('pricing')
@@ -121,58 +119,81 @@ export function Categories() {
         </div>
 
         {/* Cards Grid */}
-        <motion.div
-          ref={ref}
-          variants={containerVariants}
-          initial="hidden"
-          animate={isInView ? 'visible' : 'hidden'}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-        >
-          {categories.map((category) => (
-            <motion.div key={category.name} variants={cardVariants}>
-              <Card className="group relative bg-card/50 backdrop-blur-sm border border-border/50 hover:border-primary/40 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden">
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {Array.from({ length: 9 }).map((_, i) => (
+              <Card key={i} className="animate-pulse">
                 <CardContent className="p-6">
                   <div className="flex items-start gap-4">
-                    <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                      <category.icon className="h-6 w-6 text-primary" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-serif font-semibold text-lg text-foreground">
-                        {category.name}
-                      </h3>
-                      <div className="mt-1">
-                        <span className="text-sm text-muted-foreground">Starting at</span>
-                        <span className="ml-1 text-2xl font-bold text-primary">
-                          ₹{category.price.toLocaleString('en-IN')}
-                        </span>
-                      </div>
+                    <div className="w-12 h-12 rounded-xl bg-muted" />
+                    <div className="flex-1 space-y-2">
+                      <div className="h-5 bg-muted rounded w-24" />
+                      <div className="h-7 bg-muted rounded w-20" />
                     </div>
                   </div>
-
-                  <ul className="mt-4 space-y-2">
-                    {category.features.map((feature) => (
-                      <li
-                        key={feature}
-                        className="flex items-center gap-2 text-sm text-muted-foreground"
-                      >
-                        <div className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" />
-                        {feature}
-                      </li>
+                  <div className="mt-4 space-y-2">
+                    {Array.from({ length: 4 }).map((_, j) => (
+                      <div key={j} className="h-3 bg-muted rounded w-32" />
                     ))}
-                  </ul>
-
-                  <Button
-                    className="w-full mt-6 rounded-xl"
-                    variant="outline"
-                    onClick={() => handleGetStarted(category.name)}
-                  >
-                    Get Started
-                  </Button>
+                  </div>
                 </CardContent>
               </Card>
-            </motion.div>
-          ))}
-        </motion.div>
+            ))}
+          </div>
+        ) : (
+          <motion.div
+            ref={ref}
+            variants={containerVariants}
+            initial="hidden"
+            animate={isInView ? 'visible' : 'hidden'}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+          >
+            {categories.map((category) => (
+              <motion.div key={category.name} variants={cardVariants}>
+                <Card className="group relative bg-card/50 backdrop-blur-sm border border-border/50 hover:border-primary/40 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden">
+                  <CardContent className="p-6">
+                    <div className="flex items-start gap-4">
+                      <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                        <category.icon className="h-6 w-6 text-primary" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-serif font-semibold text-lg text-foreground">
+                          {category.name}
+                        </h3>
+                        <div className="mt-1">
+                          <span className="text-sm text-muted-foreground">Starting at</span>
+                          <span className="ml-1 text-2xl font-bold text-primary">
+                            ₹{category.price.toLocaleString('en-IN')}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <ul className="mt-4 space-y-2">
+                      {category.features.map((feature) => (
+                        <li
+                          key={feature}
+                          className="flex items-center gap-2 text-sm text-muted-foreground"
+                        >
+                          <div className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" />
+                          {feature}
+                        </li>
+                      ))}
+                    </ul>
+
+                    <Button
+                      className="w-full mt-6 rounded-xl"
+                      variant="outline"
+                      onClick={() => handleGetStarted(category.name)}
+                    >
+                      Get Started
+                    </Button>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </motion.div>
+        )}
       </div>
     </section>
   )
