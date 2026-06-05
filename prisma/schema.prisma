@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -13,20 +7,47 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
+model WebsiteCategory {
   id        String   @id @default(cuid())
-  email     String   @unique
-  name      String?
+  name      String   @unique
+  slug      String   @unique
+  icon      String
+  basePrice Int
+  features  String   // comma-separated features
+  order     Int      @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
-model Post {
+model AddOn {
   id        String   @id @default(cuid())
-  title     String
-  content   String?
-  published Boolean  @default(false)
-  authorId  String
+  name      String   @unique
+  slug      String   @unique
+  price     Int
+  order     Int      @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model PageOption {
+  id          String   @id @default(cuid())
+  label       String   @unique
+  slug        String   @unique
+  description String
+  extraPrice  Int
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model PortfolioProject {
+  id          String   @id @default(cuid())
+  name        String
+  category    String
+  description String
+  gradient    String
+  websiteUrl  String?  // URL to demo website
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
