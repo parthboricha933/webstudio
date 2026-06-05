@@ -169,7 +169,7 @@ export function Configurator() {
     { id: 'live-chat', name: 'Live Chat Support', price: 2000 },
     { id: 'custom-forms', name: 'Custom Forms', price: 1500 },
   ])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
 
   // Build categoryMap from fetched data
   const categoryMap = useCallback((): Record<string, string> => {

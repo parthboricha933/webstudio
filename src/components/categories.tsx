@@ -77,12 +77,13 @@ const cardVariants = {
 export function Categories() {
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true, margin: '-100px' })
-  const [categories, setCategories] = useState<CategoryDisplay[]>([])
-  const [loading, setLoading] = useState(true)
+  // Initialize with fallback data so content is ALWAYS visible immediately
+  const [categories, setCategories] = useState<CategoryDisplay[]>(fallbackCategories)
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState(false)
 
   const fetchCategories = useCallback(async (retryCount = 3) => {
-    setLoading(true)
+    // Don't set loading=true since we already have fallback data visible
     setError(false)
 
     for (let attempt = 0; attempt < retryCount; attempt++) {
@@ -103,7 +104,6 @@ export function Categories() {
               features: cat.features.split(',').map((f) => f.trim()),
             }))
             setCategories(mapped)
-            setLoading(false)
             return
           }
         }
@@ -116,11 +116,9 @@ export function Categories() {
       }
     }
 
-    // All retries failed - use fallback data
+    // All retries failed - keep using fallback data already in state
     console.warn('Using fallback categories data')
-    setCategories(fallbackCategories)
     setError(true)
-    setLoading(false)
   }, [])
 
   useEffect(() => {
