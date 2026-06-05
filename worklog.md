@@ -64,3 +64,27 @@ Stage Summary:
 - Configurator: 9 types + 26 add-ons + 5 page options loading with fallback data
 - All components now have 3-retry logic, 15s timeouts, and hardcoded fallback data
 - Database warmup triggers on page load to reduce Neon cold-start impact
+
+---
+Task ID: add-admin-login
+Agent: Main Agent
+Task: Add login authentication to admin panel
+
+Work Log:
+- Created JWT-based auth system using jose library (already available via next-auth)
+- Created auth utilities: /src/lib/auth.ts (createSession, verifySession, getSession)
+- Created login API: /src/app/api/auth/login/route.ts (POST - validates credentials, sets HTTP-only cookie)
+- Created logout API: /src/app/api/auth/logout/route.ts (POST - clears cookie)
+- Created auth check API: /src/app/api/auth/check/route.ts (GET - returns auth status)
+- Created login page: /src/app/admin/login/page.tsx (styled dark theme with emerald accents, show/hide password, auto-redirect if already logged in)
+- Created middleware: /src/middleware.ts (protects /admin/* routes, redirects to /admin/login with ?from= param)
+- Added logout button to admin sidebar (red "Logout" button below "Back to Website")
+- Added redirect support: after login, redirects to the ?from= URL
+
+Stage Summary:
+- Default credentials: username=admin, password=parth@2024
+- Session: JWT in HTTP-only cookie, 24-hour expiry
+- Middleware protects /admin/* except /admin/login
+- Login page auto-redirects to /admin if already authenticated
+- Logout clears cookie and redirects to login page
+- Full flow verified: login → admin access → logout → redirect to login

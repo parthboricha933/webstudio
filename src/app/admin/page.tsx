@@ -13,6 +13,7 @@ import {
   ArrowLeft,
   RefreshCw,
   ExternalLink,
+  LogOut,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -624,7 +625,7 @@ export default function AdminPage() {
             </button>
           ))}
         </nav>
-        <div className="p-4 border-t border-gray-800">
+        <div className="p-4 border-t border-gray-800 space-y-2">
           <Link href="/">
             <Button
               variant="ghost"
@@ -634,6 +635,17 @@ export default function AdminPage() {
               Back to Website
             </Button>
           </Link>
+          <Button
+            variant="ghost"
+            onClick={async () => {
+              await fetch('/api/auth/logout', { method: 'POST' })
+              window.location.href = '/admin/login'
+            }}
+            className="w-full text-red-400 hover:text-red-300 hover:bg-gray-800 gap-2 justify-start"
+          >
+            <LogOut className="h-4 w-4" />
+            Logout
+          </Button>
         </div>
       </aside>
 
