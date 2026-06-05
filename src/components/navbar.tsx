@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useSyncExternalStore } from 'react'
 import { useTheme } from 'next-themes'
-import { Menu, Sun, Moon, Code2 } from 'lucide-react'
+import { Menu, Sun, Moon, Code2, Shield } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Sheet,
@@ -19,6 +19,8 @@ const navLinks = [
   { label: 'Pricing', href: '#pricing' },
   { label: 'Contact', href: '#contact' },
 ]
+
+const adminLink = { label: 'Admin', href: '/admin' }
 
 const emptySubscribe = () => () => {}
 
@@ -102,6 +104,13 @@ export function Navbar() {
                 {link.label}
               </button>
             ))}
+            <a
+              href={adminLink.href}
+              className="ml-2 px-4 py-2 rounded-md text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent flex items-center gap-1.5 transition-colors"
+            >
+              <Shield className="h-4 w-4" />
+              {adminLink.label}
+            </a>
             {mounted && (
               <Button
                 variant="ghost"
@@ -120,7 +129,14 @@ export function Navbar() {
           </div>
 
           {/* Mobile Navigation */}
-          <div className="flex items-center gap-2 md:hidden">
+          <div className="flex items-center gap-1 md:hidden">
+            <a
+              href={adminLink.href}
+              className="p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent flex items-center justify-center transition-colors"
+              aria-label="Admin Panel"
+            >
+              <Shield className="h-5 w-5" />
+            </a>
             {mounted && (
               <Button
                 variant="ghost"
@@ -162,6 +178,14 @@ export function Navbar() {
                       {link.label}
                     </button>
                   ))}
+                  <div className="border-t my-2" />
+                  <a
+                    href={adminLink.href}
+                    className="px-4 py-3 rounded-md text-left text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent flex items-center gap-2 transition-colors"
+                  >
+                    <Shield className="h-4 w-4" />
+                    {adminLink.label}
+                  </a>
                 </div>
               </SheetContent>
             </Sheet>
