@@ -334,7 +334,7 @@ export function Configurator() {
 Project Description: ${formData.projectDescription || 'N/A'}`
 
     const encoded = encodeURIComponent(message)
-    window.open(`https://wa.me/919999999999?text=${encoded}`, '_blank')
+    window.open(`https://wa.me/918347185730?text=${encoded}`, '_blank')
   }
 
   return (

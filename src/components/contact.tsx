@@ -19,20 +19,20 @@ const contactInfo = [
   {
     icon: Phone,
     label: 'Phone',
-    value: '+91 99999 99999',
-    href: 'tel:+919999999999',
+    value: '+91 83471 85730',
+    href: 'tel:+918347185730',
   },
   {
     icon: MessageCircle,
     label: 'WhatsApp',
-    value: '+91 99999 99999',
-    href: 'https://wa.me/919999999999',
+    value: '+91 83471 85730',
+    href: 'https://wa.me/918347185730',
   },
   {
     icon: Mail,
     label: 'Email',
-    value: 'hello@parthwebstudio.com',
-    href: 'mailto:hello@parthwebstudio.com',
+    value: 'borichaparth5@gmail.com',
+    href: 'mailto:borichaparth5@gmail.com',
   },
   {
     icon: MapPin,

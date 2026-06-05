@@ -135,25 +135,25 @@ export function Footer() {
             <ul className="space-y-3">
               <li>
                 <a
-                  href="tel:+919999999999"
+                  href="tel:+918347185730"
                   className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors"
                 >
                   <Phone className="h-4 w-4 flex-shrink-0" />
-                  +91 99999 99999
+                  +91 83471 85730
                 </a>
               </li>
               <li>
                 <a
-                  href="mailto:hello@parthwebstudio.com"
+                  href="mailto:borichaparth5@gmail.com"
                   className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors"
                 >
                   <Mail className="h-4 w-4 flex-shrink-0" />
-                  hello@parthwebstudio.com
+                  borichaparth5@gmail.com
                 </a>
               </li>
               <li>
                 <a
-                  href="https://wa.me/919999999999"
+                  href="https://wa.me/918347185730"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors"
