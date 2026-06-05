@@ -1,4 +1,4 @@
-import { db } from '@/lib/db'
+import { db, withRetry } from '@/lib/db'
 import { NextResponse } from 'next/server'
 
 export async function GET(
@@ -7,7 +7,7 @@ export async function GET(
 ) {
   try {
     const { id } = await params
-    const addon = await db.addOn.findUnique({ where: { id } })
+    const addon = await withRetry(() => db.addOn.findUnique({ where: { id } }))
     if (!addon) {
       return NextResponse.json({ error: 'Add-on not found' }, { status: 404 })
     }
@@ -28,22 +28,24 @@ export async function PUT(
   try {
     const { id } = await params
     const body = await request.json()
-    const addon = await db.addOn.update({
-      where: { id },
-      data: {
-        name: body.name,
-        slug: body.slug,
-        price: body.price,
-        order: body.order,
-      },
-    })
+    const addon = await withRetry(() =>
+      db.addOn.update({
+        where: { id },
+        data: {
+          name: body.name,
+          slug: body.slug,
+          price: body.price,
+          order: body.order,
+        },
+      })
+    )
     return NextResponse.json(addon)
   } catch (error) {
     console.error('Failed to update add-on:', error)
-    return NextResponse.json(
-      { error: 'Failed to update add-on' },
-      { status: 500 }
-    )
+    const message = error instanceof Error && (error.message.includes('timeout') || error.message.includes('connect'))
+      ? 'Database is warming up. Please wait a moment and try again.'
+      : 'Failed to update add-on. Please try again.'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }
 
@@ -53,13 +55,13 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params
-    await db.addOn.delete({ where: { id } })
+    await withRetry(() => db.addOn.delete({ where: { id } }))
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Failed to delete add-on:', error)
-    return NextResponse.json(
-      { error: 'Failed to delete add-on' },
-      { status: 500 }
-    )
+    const message = error instanceof Error && (error.message.includes('timeout') || error.message.includes('connect'))
+      ? 'Database is warming up. Please wait a moment and try again.'
+      : 'Failed to delete add-on. Please try again.'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }

@@ -1,16 +1,18 @@
-import { db } from '@/lib/db'
+import { db, withRetry } from '@/lib/db'
 import { NextResponse } from 'next/server'
 
 export async function GET() {
   try {
-    const categories = await db.websiteCategory.findMany({
-      orderBy: { order: 'asc' },
-    })
+    const categories = await withRetry(() =>
+      db.websiteCategory.findMany({
+        orderBy: { order: 'asc' },
+      })
+    )
     return NextResponse.json(categories)
   } catch (error) {
     console.error('Failed to fetch categories:', error)
     return NextResponse.json(
-      { error: 'Failed to fetch categories' },
+      { error: 'Failed to fetch categories. Database may be warming up - please try again.' },
       { status: 500 }
     )
   }
@@ -19,22 +21,24 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const category = await db.websiteCategory.create({
-      data: {
-        name: body.name,
-        slug: body.slug,
-        icon: body.icon,
-        basePrice: body.basePrice,
-        features: body.features,
-        order: body.order ?? 0,
-      },
-    })
+    const category = await withRetry(() =>
+      db.websiteCategory.create({
+        data: {
+          name: body.name,
+          slug: body.slug,
+          icon: body.icon,
+          basePrice: body.basePrice,
+          features: body.features,
+          order: body.order ?? 0,
+        },
+      })
+    )
     return NextResponse.json(category, { status: 201 })
   } catch (error) {
     console.error('Failed to create category:', error)
-    return NextResponse.json(
-      { error: 'Failed to create category' },
-      { status: 500 }
-    )
+    const message = error instanceof Error && (error.message.includes('timeout') || error.message.includes('connect'))
+      ? 'Database is warming up. Please wait a moment and try again.'
+      : 'Failed to create category. Please try again.'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }

@@ -1,4 +1,4 @@
-import { db } from '@/lib/db'
+import { db, withRetry } from '@/lib/db'
 import { NextResponse } from 'next/server'
 
 export async function GET(
@@ -7,7 +7,7 @@ export async function GET(
 ) {
   try {
     const { id } = await params
-    const page = await db.pageOption.findUnique({ where: { id } })
+    const page = await withRetry(() => db.pageOption.findUnique({ where: { id } }))
     if (!page) {
       return NextResponse.json(
         { error: 'Page option not found' },
@@ -31,23 +31,25 @@ export async function PUT(
   try {
     const { id } = await params
     const body = await request.json()
-    const page = await db.pageOption.update({
-      where: { id },
-      data: {
-        label: body.label,
-        slug: body.slug,
-        description: body.description,
-        extraPrice: body.extraPrice,
-        order: body.order,
-      },
-    })
+    const page = await withRetry(() =>
+      db.pageOption.update({
+        where: { id },
+        data: {
+          label: body.label,
+          slug: body.slug,
+          description: body.description,
+          extraPrice: body.extraPrice,
+          order: body.order,
+        },
+      })
+    )
     return NextResponse.json(page)
   } catch (error) {
     console.error('Failed to update page option:', error)
-    return NextResponse.json(
-      { error: 'Failed to update page option' },
-      { status: 500 }
-    )
+    const message = error instanceof Error && (error.message.includes('timeout') || error.message.includes('connect'))
+      ? 'Database is warming up. Please wait a moment and try again.'
+      : 'Failed to update page option. Please try again.'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }
 
@@ -57,13 +59,13 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params
-    await db.pageOption.delete({ where: { id } })
+    await withRetry(() => db.pageOption.delete({ where: { id } }))
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Failed to delete page option:', error)
-    return NextResponse.json(
-      { error: 'Failed to delete page option' },
-      { status: 500 }
-    )
+    const message = error instanceof Error && (error.message.includes('timeout') || error.message.includes('connect'))
+      ? 'Database is warming up. Please wait a moment and try again.'
+      : 'Failed to delete page option. Please try again.'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }

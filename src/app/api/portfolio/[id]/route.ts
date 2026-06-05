@@ -1,4 +1,4 @@
-import { db } from '@/lib/db'
+import { db, withRetry } from '@/lib/db'
 import { NextResponse } from 'next/server'
 
 export async function GET(
@@ -7,7 +7,9 @@ export async function GET(
 ) {
   try {
     const { id } = await params
-    const project = await db.portfolioProject.findUnique({ where: { id } })
+    const project = await withRetry(() =>
+      db.portfolioProject.findUnique({ where: { id } })
+    )
     if (!project) {
       return NextResponse.json(
         { error: 'Portfolio project not found' },
@@ -31,24 +33,26 @@ export async function PUT(
   try {
     const { id } = await params
     const body = await request.json()
-    const project = await db.portfolioProject.update({
-      where: { id },
-      data: {
-        name: body.name,
-        category: body.category,
-        description: body.description,
-        gradient: body.gradient,
-        websiteUrl: body.websiteUrl ?? null,
-        order: body.order,
-      },
-    })
+    const project = await withRetry(() =>
+      db.portfolioProject.update({
+        where: { id },
+        data: {
+          name: body.name?.trim() || body.name,
+          category: body.category,
+          description: body.description?.trim() || body.description,
+          gradient: body.gradient?.trim() || body.gradient,
+          websiteUrl: body.websiteUrl?.trim() || null,
+          order: body.order,
+        },
+      })
+    )
     return NextResponse.json(project)
   } catch (error) {
     console.error('Failed to update portfolio project:', error)
-    return NextResponse.json(
-      { error: 'Failed to update portfolio project' },
-      { status: 500 }
-    )
+    const message = error instanceof Error && (error.message.includes('timeout') || error.message.includes('connect'))
+      ? 'Database is warming up. Please wait a moment and try again.'
+      : 'Failed to update portfolio project. Please try again.'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }
 
@@ -58,13 +62,13 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params
-    await db.portfolioProject.delete({ where: { id } })
+    await withRetry(() => db.portfolioProject.delete({ where: { id } }))
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Failed to delete portfolio project:', error)
-    return NextResponse.json(
-      { error: 'Failed to delete portfolio project' },
-      { status: 500 }
-    )
+    const message = error instanceof Error && (error.message.includes('timeout') || error.message.includes('connect'))
+      ? 'Database is warming up. Please wait a moment and try again.'
+      : 'Failed to delete portfolio project. Please try again.'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }

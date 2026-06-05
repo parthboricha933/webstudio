@@ -1,4 +1,4 @@
-import { db } from '@/lib/db'
+import { db, withRetry } from '@/lib/db'
 import { NextResponse } from 'next/server'
 
 // This endpoint warms up the Neon database connection
@@ -6,7 +6,7 @@ import { NextResponse } from 'next/server'
 export async function GET() {
   try {
     // Simple lightweight query to wake up the database
-    await db.$queryRaw`SELECT 1`
+    await withRetry(() => db.$queryRaw`SELECT 1`, 2, 500)
     return NextResponse.json({ status: 'warm' })
   } catch {
     // Don't fail - the actual data endpoints have their own retry logic

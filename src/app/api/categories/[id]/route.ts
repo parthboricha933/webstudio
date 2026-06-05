@@ -1,4 +1,4 @@
-import { db } from '@/lib/db'
+import { db, withRetry } from '@/lib/db'
 import { NextResponse } from 'next/server'
 
 export async function GET(
@@ -7,7 +7,9 @@ export async function GET(
 ) {
   try {
     const { id } = await params
-    const category = await db.websiteCategory.findUnique({ where: { id } })
+    const category = await withRetry(() =>
+      db.websiteCategory.findUnique({ where: { id } })
+    )
     if (!category) {
       return NextResponse.json(
         { error: 'Category not found' },
@@ -31,24 +33,26 @@ export async function PUT(
   try {
     const { id } = await params
     const body = await request.json()
-    const category = await db.websiteCategory.update({
-      where: { id },
-      data: {
-        name: body.name,
-        slug: body.slug,
-        icon: body.icon,
-        basePrice: body.basePrice,
-        features: body.features,
-        order: body.order,
-      },
-    })
+    const category = await withRetry(() =>
+      db.websiteCategory.update({
+        where: { id },
+        data: {
+          name: body.name,
+          slug: body.slug,
+          icon: body.icon,
+          basePrice: body.basePrice,
+          features: body.features,
+          order: body.order,
+        },
+      })
+    )
     return NextResponse.json(category)
   } catch (error) {
     console.error('Failed to update category:', error)
-    return NextResponse.json(
-      { error: 'Failed to update category' },
-      { status: 500 }
-    )
+    const message = error instanceof Error && (error.message.includes('timeout') || error.message.includes('connect'))
+      ? 'Database is warming up. Please wait a moment and try again.'
+      : 'Failed to update category. Please try again.'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }
 
@@ -58,13 +62,13 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params
-    await db.websiteCategory.delete({ where: { id } })
+    await withRetry(() => db.websiteCategory.delete({ where: { id } }))
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Failed to delete category:', error)
-    return NextResponse.json(
-      { error: 'Failed to delete category' },
-      { status: 500 }
-    )
+    const message = error instanceof Error && (error.message.includes('timeout') || error.message.includes('connect'))
+      ? 'Database is warming up. Please wait a moment and try again.'
+      : 'Failed to delete category. Please try again.'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }

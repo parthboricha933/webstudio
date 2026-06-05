@@ -499,9 +499,11 @@ export default function AdminPage() {
     }
   }
 
-  // Initial data load
+  // Initial data load - warm up DB first, then load data
   useEffect(() => {
     async function loadAll() {
+      // Warm up the database connection first to handle Neon cold starts
+      try { await fetch('/api/warmup') } catch {}
       await Promise.all([loadCategories(), loadAddons(), loadPages(), loadPortfolio()])
       setLoading(false)
     }
@@ -610,31 +612,58 @@ export default function AdminPage() {
     }
 
     setSaving(true)
-    try {
-      const res = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(cleanData),
-      })
-      if (res.ok) {
-        setDialogOpen(false)
-        setEditingItem(null)
-        setFormData({})
-        // Refresh data
-        if (type === 'categories') loadCategories()
-        if (type === 'addons') loadAddons()
-        if (type === 'pages') loadPages()
-        if (type === 'portfolio') loadPortfolio()
-      } else {
-        const err = await res.json()
-        alert(`Error: ${err.error || 'Failed to save'}`)
+    const maxAttempts = 3
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      try {
+        const controller = new AbortController()
+        const timeout = setTimeout(() => controller.abort(), 30000) // 30s timeout
+
+        const res = await fetch(url, {
+          method,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(cleanData),
+          signal: controller.signal,
+        })
+        clearTimeout(timeout)
+
+        if (res.ok) {
+          setDialogOpen(false)
+          setEditingItem(null)
+          setFormData({})
+          // Refresh data
+          if (type === 'categories') loadCategories()
+          if (type === 'addons') loadAddons()
+          if (type === 'pages') loadPages()
+          if (type === 'portfolio') loadPortfolio()
+          break // Success - exit retry loop
+        } else {
+          const err = await res.json()
+          const errorMsg = err.error || 'Failed to save'
+          // If it's a timeout/warming error and we have retries left, retry
+          if ((errorMsg.includes('warming') || errorMsg.includes('timeout') || errorMsg.includes('connect')) && attempt < maxAttempts - 1) {
+            await new Promise(r => setTimeout(r, 2000 * (attempt + 1)))
+            continue
+          }
+          alert(`Error: ${errorMsg}`)
+          break
+        }
+      } catch (e: unknown) {
+        const isAbort = e instanceof Error && e.name === 'AbortError'
+        if ((isAbort || (e instanceof TypeError)) && attempt < maxAttempts - 1) {
+          // Network error or timeout - retry
+          await new Promise(r => setTimeout(r, 2000 * (attempt + 1)))
+          continue
+        }
+        console.error('Save failed:', e)
+        alert('Failed to save. The database may be warming up. Please wait a moment and try again.')
+        break
+      } finally {
+        if (attempt === maxAttempts - 1) {
+          setSaving(false)
+        }
       }
-    } catch (e) {
-      console.error('Save failed:', e)
-      alert('Failed to save. Please check your connection and try again.')
-    } finally {
-      setSaving(false)
     }
+    setSaving(false)
   }
 
   const handleDelete = async () => {
