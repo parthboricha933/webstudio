@@ -168,7 +168,8 @@ export function Portfolio() {
                   transition={{ duration: 0.3 }}
                   onClick={() => {
                     if (project.websiteUrl) {
-                      window.open(project.websiteUrl, '_blank', 'noopener,noreferrer')
+                      const url = project.websiteUrl.startsWith('http') ? project.websiteUrl : `https://${project.websiteUrl}`
+                      window.open(url, '_blank', 'noopener,noreferrer')
                     }
                   }}
                   style={project.websiteUrl ? { cursor: 'pointer' } : undefined}
@@ -194,7 +195,7 @@ export function Portfolio() {
                       {/* Hover Overlay */}
                       <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
                         {project.websiteUrl ? (
-                          <span className="text-white font-medium text-sm px-4 py-2 rounded-lg border border-white/30 backdrop-blur-sm hover:bg-white/10 transition-colors flex items-center gap-2">
+                          <span className="text-white font-medium text-sm px-5 py-2.5 rounded-lg border border-white/30 backdrop-blur-sm hover:bg-white/10 transition-colors flex items-center gap-2">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                               <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                             </svg>
@@ -229,6 +230,20 @@ export function Portfolio() {
                       <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
                         {project.description}
                       </p>
+                      {project.websiteUrl && (
+                        <a
+                          href={project.websiteUrl.startsWith('http') ? project.websiteUrl : `https://${project.websiteUrl}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:text-primary/80 transition-colors"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                          </svg>
+                          Visit Website
+                        </a>
+                      )}
                     </CardContent>
                   </Card>
                 </motion.div>
