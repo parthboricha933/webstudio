@@ -108,6 +108,7 @@ const ICON_OPTIONS = [
 ]
 
 const PORTFOLIO_CATEGORIES = [
+  'Local Business',
   'Restaurant',
   'Hotel',
   'Cafe',
@@ -458,6 +459,9 @@ export default function AdminPage() {
     name: string
   } | null>(null)
 
+  // Saving state
+  const [saving, setSaving] = useState(false)
+
   // Fetch data helpers
   const loadCategories = async () => {
     try {
@@ -514,19 +518,76 @@ export default function AdminPage() {
   // CRUD handlers
   const openCreate = (type: TabType) => {
     setEditingItem({ type })
-    setFormData({})
+    // Set default values for new items so Select components work properly
+    const defaults: Record<string, Record<string, unknown>> = {
+      categories: { icon: '', basePrice: 0, order: 0, features: '' },
+      addons: { price: 0, order: 0 },
+      pages: { extraPrice: 0, order: 0, description: '' },
+      portfolio: { category: '', gradient: 'from-orange-400 via-red-400 to-rose-500', order: 0, description: '', websiteUrl: '' },
+    }
+    setFormData(defaults[type] || {})
     setDialogOpen(true)
   }
 
   const openEdit = (type: TabType, id: string, data: Record<string, unknown>) => {
     setEditingItem({ type, id })
-    setFormData(data)
+    // Make sure websiteUrl is never undefined for portfolio items
+    if (type === 'portfolio') {
+      setFormData({ ...data, websiteUrl: (data as Record<string, unknown>).websiteUrl ?? '' })
+    } else {
+      setFormData(data)
+    }
     setDialogOpen(true)
   }
 
   const handleSave = async () => {
     if (!editingItem) return
     const { type, id } = editingItem
+
+    // Validate required fields before sending
+    if (type === 'portfolio') {
+      if (!formData.name || !(formData.name as string).trim()) {
+        alert('Please enter a project name.')
+        return
+      }
+      if (!formData.category) {
+        alert('Please select a category.')
+        return
+      }
+      if (!formData.description || !(formData.description as string).trim()) {
+        alert('Please enter a description.')
+        return
+      }
+      if (!formData.gradient || !(formData.gradient as string).trim()) {
+        alert('Please enter gradient classes (e.g. from-orange-400 via-red-400 to-rose-500).')
+        return
+      }
+    }
+
+    if (type === 'categories') {
+      if (!formData.name || !(formData.name as string).trim()) {
+        alert('Please enter a category name.')
+        return
+      }
+      if (!formData.icon) {
+        alert('Please select an icon.')
+        return
+      }
+    }
+
+    if (type === 'addons') {
+      if (!formData.name || !(formData.name as string).trim()) {
+        alert('Please enter an add-on name.')
+        return
+      }
+    }
+
+    if (type === 'pages') {
+      if (!formData.label || !(formData.label as string).trim()) {
+        alert('Please enter a label.')
+        return
+      }
+    }
 
     const apiMap = {
       categories: '/api/categories',
@@ -538,11 +599,22 @@ export default function AdminPage() {
     const url = id ? `${apiMap[type]}/${id}` : apiMap[type]
     const method = id ? 'PUT' : 'POST'
 
+    // Clean up formData: remove readonly fields and convert empty strings to null for nullable fields
+    const cleanData = { ...formData }
+    delete cleanData.id
+    delete cleanData.createdAt
+    delete cleanData.updatedAt
+    // Convert empty websiteUrl to null
+    if (type === 'portfolio' && (cleanData.websiteUrl === '' || cleanData.websiteUrl === undefined)) {
+      cleanData.websiteUrl = null
+    }
+
+    setSaving(true)
     try {
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(cleanData),
       })
       if (res.ok) {
         setDialogOpen(false)
@@ -559,7 +631,9 @@ export default function AdminPage() {
       }
     } catch (e) {
       console.error('Save failed:', e)
-      alert('Failed to save. Please try again.')
+      alert('Failed to save. Please check your connection and try again.')
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -1270,9 +1344,10 @@ export default function AdminPage() {
             </Button>
             <Button
               onClick={handleSave}
+              disabled={saving}
               className="bg-emerald-600 hover:bg-emerald-700"
             >
-              {editingItem?.id ? 'Save Changes' : 'Create'}
+              {saving ? 'Saving...' : editingItem?.id ? 'Save Changes' : 'Create'}
             </Button>
           </DialogFooter>
         </DialogContent>
