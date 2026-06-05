@@ -166,6 +166,12 @@ export function Portfolio() {
                   }
                   exit={{ opacity: 0, scale: 0.9 }}
                   transition={{ duration: 0.3 }}
+                  onClick={() => {
+                    if (project.websiteUrl) {
+                      window.open(project.websiteUrl, '_blank', 'noopener,noreferrer')
+                    }
+                  }}
+                  style={project.websiteUrl ? { cursor: 'pointer' } : undefined}
                 >
                   <Card className="group overflow-hidden bg-card/50 backdrop-blur-sm border border-border/50 hover:border-primary/30 shadow-sm hover:shadow-xl transition-all duration-300">
                     {/* Gradient Placeholder Image */}
@@ -188,14 +194,12 @@ export function Portfolio() {
                       {/* Hover Overlay */}
                       <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
                         {project.websiteUrl ? (
-                          <a
-                            href={project.websiteUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-white font-medium text-sm px-4 py-2 rounded-lg border border-white/30 backdrop-blur-sm hover:bg-white/10 transition-colors"
-                          >
-                            View Project
-                          </a>
+                          <span className="text-white font-medium text-sm px-4 py-2 rounded-lg border border-white/30 backdrop-blur-sm hover:bg-white/10 transition-colors flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                            </svg>
+                            Visit Website
+                          </span>
                         ) : (
                           <span className="text-white font-medium text-sm px-4 py-2 rounded-lg border border-white/30 backdrop-blur-sm">
                             View Project
@@ -208,12 +212,19 @@ export function Portfolio() {
                         <h3 className="font-serif font-semibold text-foreground">
                           {project.name}
                         </h3>
-                        <Badge
-                          variant="secondary"
-                          className="text-xs whitespace-nowrap flex-shrink-0"
-                        >
-                          {project.category}
-                        </Badge>
+                        <div className="flex items-center gap-1.5">
+                          {project.websiteUrl && (
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 text-primary flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                            </svg>
+                          )}
+                          <Badge
+                            variant="secondary"
+                            className="text-xs whitespace-nowrap flex-shrink-0"
+                          >
+                            {project.category}
+                          </Badge>
+                        </div>
                       </div>
                       <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
                         {project.description}
