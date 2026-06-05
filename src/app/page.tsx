@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect } from 'react'
 import { Navbar } from '@/components/navbar'
 import { Hero } from '@/components/hero'
 import { Categories } from '@/components/categories'
@@ -12,6 +13,13 @@ import { Footer } from '@/components/footer'
 import { WhatsAppButton } from '@/components/whatsapp-button'
 
 export default function Home() {
+  // Warm up the Neon database connection on page load
+  useEffect(() => {
+    fetch('/api/warmup').catch(() => {
+      // Silent fail - components have their own retry logic
+    })
+  }, [])
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />

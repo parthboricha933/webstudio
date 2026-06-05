@@ -123,9 +123,52 @@ export function Configurator() {
   })
 
   // API data state
-  const [websiteTypes, setWebsiteTypes] = useState<WebsiteType[]>([])
-  const [pageOptions, setPageOptions] = useState<PageOptionDisplay[]>([])
-  const [addOns, setAddOns] = useState<AddOnDisplay[]>([])
+  const [websiteTypes, setWebsiteTypes] = useState<WebsiteType[]>([
+    { id: 'local-business', name: 'Local Business', icon: Store, basePrice: 4999 },
+    { id: 'restaurant', name: 'Restaurant', icon: UtensilsCrossed, basePrice: 7999 },
+    { id: 'cafe', name: 'Cafe', icon: Coffee, basePrice: 7999 },
+    { id: 'hotel', name: 'Hotel', icon: Hotel, basePrice: 12999 },
+    { id: 'hospital', name: 'Hospital', icon: Stethoscope, basePrice: 9999 },
+    { id: 'gym', name: 'Gym', icon: Dumbbell, basePrice: 8999 },
+    { id: 'school', name: 'School', icon: GraduationCap, basePrice: 14999 },
+    { id: 'business', name: 'Business', icon: Briefcase, basePrice: 14999 },
+    { id: 'ecommerce', name: 'E-Commerce', icon: ShoppingCart, basePrice: 24999 },
+  ])
+  const [pageOptions, setPageOptions] = useState<PageOptionDisplay[]>([
+    { id: '1page', label: '1 Page', description: 'Single page website', extra: 0 },
+    { id: '5pages', label: '5 Pages', description: 'Small multi-page site', extra: 2000 },
+    { id: '10pages', label: '10 Pages', description: 'Medium multi-page site', extra: 5000 },
+    { id: '15pages', label: '15 Pages', description: 'Large multi-page site', extra: 8000 },
+    { id: 'custom-pages', label: 'Custom', description: 'Fully custom pages', extra: 12000 },
+  ])
+  const [addOns, setAddOns] = useState<AddOnDisplay[]>([
+    { id: 'payment-gateway', name: 'Payment Gateway', price: 3000 },
+    { id: 'ai-chatbot', name: 'AI Chatbot', price: 5000 },
+    { id: 'voice-ai', name: 'Voice AI Assistant', price: 10000 },
+    { id: 'food-ordering', name: 'Online Food Ordering', price: 5000 },
+    { id: 'hotel-booking', name: 'Hotel Room Booking', price: 6000 },
+    { id: 'appointment-booking', name: 'Appointment Booking', price: 4000 },
+    { id: 'admin-dashboard', name: 'Admin Dashboard', price: 7000 },
+    { id: 'customer-login', name: 'Customer Login System', price: 5000 },
+    { id: 'inventory', name: 'Inventory Management', price: 10000 },
+    { id: 'whatsapp-automation', name: 'WhatsApp Automation', price: 3500 },
+    { id: 'email-automation', name: 'Email Automation', price: 3000 },
+    { id: 'sms-notifications', name: 'SMS Notifications', price: 4000 },
+    { id: 'multi-language', name: 'Multi-Language Website', price: 3000 },
+    { id: 'google-reviews', name: 'Google Reviews Integration', price: 1500 },
+    { id: 'social-media', name: 'Social Media Integration', price: 1500 },
+    { id: 'advanced-seo', name: 'Advanced SEO', price: 5000 },
+    { id: 'google-business', name: 'Google Business Profile Setup', price: 2500 },
+    { id: 'speed-optimization', name: 'Speed Optimization', price: 2000 },
+    { id: 'security-setup', name: 'Security Setup', price: 2000 },
+    { id: 'hosting-setup', name: 'Hosting Setup', price: 3000 },
+    { id: 'domain-setup', name: 'Domain Setup', price: 1000 },
+    { id: 'blog-system', name: 'Blog System', price: 3000 },
+    { id: 'portfolio-system', name: 'Portfolio System', price: 2500 },
+    { id: 'analytics-dashboard', name: 'Analytics Dashboard', price: 2500 },
+    { id: 'live-chat', name: 'Live Chat Support', price: 2000 },
+    { id: 'custom-forms', name: 'Custom Forms', price: 1500 },
+  ])
   const [loading, setLoading] = useState(true)
 
   // Build categoryMap from fetched data
@@ -137,49 +180,73 @@ export function Configurator() {
     return map
   }, [websiteTypes])
 
-  // Fetch data from API
+  // Fetch data from API with retry logic
   useEffect(() => {
+    async function fetchWithRetry(url: string, retries = 3): Promise<Response | null> {
+      for (let attempt = 0; attempt < retries; attempt++) {
+        try {
+          const controller = new AbortController()
+          const timeout = setTimeout(() => controller.abort(), 15000)
+          const res = await fetch(url, { signal: controller.signal })
+          clearTimeout(timeout)
+          if (res.ok) return res
+        } catch (e) {
+          console.warn(`Fetch ${url} attempt ${attempt + 1} failed:`, e)
+          if (attempt < retries - 1) {
+            await new Promise((r) => setTimeout(r, 1000 * (attempt + 1)))
+          }
+        }
+      }
+      return null
+    }
+
     async function fetchData() {
       try {
         const [catRes, addonRes, pageRes] = await Promise.all([
-          fetch('/api/categories'),
-          fetch('/api/addons'),
-          fetch('/api/pages'),
+          fetchWithRetry('/api/categories'),
+          fetchWithRetry('/api/addons'),
+          fetchWithRetry('/api/pages'),
         ])
 
-        if (catRes.ok) {
+        if (catRes) {
           const catData: CategoryData[] = await catRes.json()
-          setWebsiteTypes(
-            catData.map((cat) => ({
-              id: cat.slug,
-              name: cat.name,
-              icon: iconMap[cat.icon] ?? Store,
-              basePrice: cat.basePrice,
-            }))
-          )
+          if (catData && catData.length > 0) {
+            setWebsiteTypes(
+              catData.map((cat) => ({
+                id: cat.slug,
+                name: cat.name,
+                icon: iconMap[cat.icon] ?? Store,
+                basePrice: cat.basePrice,
+              }))
+            )
+          }
         }
 
-        if (addonRes.ok) {
+        if (addonRes) {
           const addonData: AddOnData[] = await addonRes.json()
-          setAddOns(
-            addonData.map((a) => ({
-              id: a.slug,
-              name: a.name,
-              price: a.price,
-            }))
-          )
+          if (addonData && addonData.length > 0) {
+            setAddOns(
+              addonData.map((a) => ({
+                id: a.slug,
+                name: a.name,
+                price: a.price,
+              }))
+            )
+          }
         }
 
-        if (pageRes.ok) {
+        if (pageRes) {
           const pageData: PageOptionData[] = await pageRes.json()
-          setPageOptions(
-            pageData.map((p) => ({
-              id: p.slug,
-              label: p.label,
-              description: p.description,
-              extra: p.extraPrice,
-            }))
-          )
+          if (pageData && pageData.length > 0) {
+            setPageOptions(
+              pageData.map((p) => ({
+                id: p.slug,
+                label: p.label,
+                description: p.description,
+                extra: p.extraPrice,
+              }))
+            )
+          }
         }
       } catch (e) {
         console.error('Failed to fetch configurator data:', e)

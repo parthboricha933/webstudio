@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence, useInView } from 'framer-motion'
+import { AlertCircle, RefreshCw } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -16,32 +17,71 @@ interface PortfolioProjectData {
   order: number
 }
 
+// Fallback data used when API fails
+const fallbackProjects: PortfolioProjectData[] = [
+  { id: '1', name: 'Spice Garden Restaurant', category: 'Restaurant', description: 'Full-featured restaurant website with digital menu and online ordering', gradient: 'from-orange-400 via-red-400 to-rose-500', websiteUrl: null, order: 1 },
+  { id: '2', name: 'The Royal Feast', category: 'Restaurant', description: 'Premium dining website with reservation system and food gallery', gradient: 'from-amber-400 via-orange-500 to-red-600', websiteUrl: null, order: 2 },
+  { id: '3', name: 'Mountain View Resort', category: 'Hotel', description: 'Luxury resort website with room listings and booking system', gradient: 'from-emerald-400 via-teal-500 to-cyan-600', websiteUrl: null, order: 3 },
+  { id: '4', name: 'Heritage Grand Hotel', category: 'Hotel', description: 'Heritage hotel website with amenities showcase and inquiry forms', gradient: 'from-teal-400 via-emerald-500 to-green-600', websiteUrl: null, order: 4 },
+  { id: '5', name: 'Brew & Bean Café', category: 'Cafe', description: 'Cozy café website with menu showcase and Google Maps integration', gradient: 'from-yellow-600 via-amber-500 to-orange-500', websiteUrl: null, order: 5 },
+  { id: '6', name: 'The Coffee House', category: 'Cafe', description: 'Modern café website with gallery and online inquiry system', gradient: 'from-amber-700 via-yellow-800 to-orange-700', websiteUrl: null, order: 6 },
+  { id: '7', name: 'CityCare Hospital', category: 'Hospital', description: 'Hospital website with doctor profiles and appointment booking', gradient: 'from-sky-400 via-blue-400 to-indigo-400', websiteUrl: null, order: 7 },
+  { id: '8', name: 'Wellness Plus Clinic', category: 'Hospital', description: 'Medical clinic website with services and emergency contacts', gradient: 'from-cyan-400 via-teal-400 to-emerald-400', websiteUrl: null, order: 8 },
+  { id: '9', name: 'FitZone Gym', category: 'Gym', description: 'Gym website with membership plans and trainer profiles', gradient: 'from-red-500 via-rose-500 to-pink-500', websiteUrl: null, order: 9 },
+  { id: '10', name: 'Sunrise Academy', category: 'School', description: 'School website with admissions portal and staff information', gradient: 'from-violet-400 via-purple-400 to-fuchsia-400', websiteUrl: null, order: 10 },
+  { id: '11', name: 'TechVista Solutions', category: 'Business', description: 'Corporate website with services and lead generation forms', gradient: 'from-slate-500 via-gray-500 to-zinc-600', websiteUrl: null, order: 11 },
+  { id: '12', name: 'ShopEasy Store', category: 'E-Commerce', description: 'E-commerce platform with product catalog and checkout system', gradient: 'from-emerald-500 via-teal-500 to-cyan-500', websiteUrl: null, order: 12 },
+]
+
 export function Portfolio() {
   const [activeFilter, setActiveFilter] = useState('All')
   const [projects, setProjects] = useState<PortfolioProjectData[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true, margin: '-100px' })
 
   // Derive categories from projects
   const categories = ['All', ...Array.from(new Set(projects.map((p) => p.category)))]
 
-  useEffect(() => {
-    async function fetchPortfolio() {
+  const fetchPortfolio = useCallback(async (retryCount = 3) => {
+    setLoading(true)
+    setError(false)
+
+    for (let attempt = 0; attempt < retryCount; attempt++) {
       try {
-        const res = await fetch('/api/portfolio')
+        const controller = new AbortController()
+        const timeout = setTimeout(() => controller.abort(), 15000)
+
+        const res = await fetch('/api/portfolio', { signal: controller.signal })
+        clearTimeout(timeout)
+
         if (res.ok) {
           const data: PortfolioProjectData[] = await res.json()
-          setProjects(data)
+          if (data && data.length > 0) {
+            setProjects(data)
+            setLoading(false)
+            return
+          }
         }
       } catch (e) {
-        console.error('Failed to fetch portfolio:', e)
-      } finally {
-        setLoading(false)
+        console.warn(`Portfolio fetch attempt ${attempt + 1} failed:`, e)
+        if (attempt < retryCount - 1) {
+          await new Promise((r) => setTimeout(r, 1000 * (attempt + 1)))
+        }
       }
     }
-    fetchPortfolio()
+
+    // All retries failed - use fallback data
+    console.warn('Using fallback portfolio data')
+    setProjects(fallbackProjects)
+    setError(true)
+    setLoading(false)
   }, [])
+
+  useEffect(() => {
+    fetchPortfolio()
+  }, [fetchPortfolio])
 
   const filteredProjects =
     activeFilter === 'All'
@@ -64,20 +104,39 @@ export function Portfolio() {
           </div>
         </div>
 
-        {/* Filter Buttons */}
-        <div className="flex flex-wrap justify-center gap-2 mb-12">
-          {categories.map((cat) => (
+        {/* Error banner with retry */}
+        {error && (
+          <div className="mb-6 flex items-center justify-center gap-3 p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg text-sm text-amber-700 dark:text-amber-300">
+            <AlertCircle className="h-4 w-4 flex-shrink-0" />
+            <span>Using cached data. Live projects may differ.</span>
             <Button
-              key={cat}
-              variant={activeFilter === cat ? 'default' : 'outline'}
+              variant="ghost"
               size="sm"
-              onClick={() => setActiveFilter(cat)}
-              className="rounded-full"
+              onClick={() => fetchPortfolio()}
+              className="ml-auto gap-1 text-amber-700 dark:text-amber-300 hover:text-amber-900 dark:hover:text-amber-100"
             >
-              {cat}
+              <RefreshCw className="h-3 w-3" />
+              Retry
             </Button>
-          ))}
-        </div>
+          </div>
+        )}
+
+        {/* Filter Buttons */}
+        {projects.length > 0 && (
+          <div className="flex flex-wrap justify-center gap-2 mb-12">
+            {categories.map((cat) => (
+              <Button
+                key={cat}
+                variant={activeFilter === cat ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setActiveFilter(cat)}
+                className="rounded-full"
+              >
+                {cat}
+              </Button>
+            ))}
+          </div>
+        )}
 
         {/* Projects Grid */}
         {loading ? (

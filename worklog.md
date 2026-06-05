@@ -42,3 +42,25 @@ Work Log:
 Stage Summary:
 - All sections now visible with data from the Neon PostgreSQL database
 - Admin panel accessible at /admin route
+
+---
+Task ID: fix-services-portfolio-loading
+Agent: Main Agent
+Task: Fix Services and Portfolio sections not loading
+
+Work Log:
+- Investigated the issue: API endpoints return data but components may fail due to Neon DB cold starts
+- Added database connection warmup on page load (new /api/warmup endpoint)
+- Updated db.ts with connection timeout settings (30s connect_timeout, 30s pool_timeout) and auto-warmup via $connect()
+- Fixed categories.tsx: Added 3-retry logic with exponential backoff, 15s timeout, fallback hardcoded data, error banner with retry button
+- Fixed portfolio.tsx: Added 3-retry logic with exponential backoff, 15s timeout, fallback hardcoded data, error banner with retry button
+- Fixed configurator.tsx: Added fetchWithRetry helper with 3 retries, initialized state with fallback data so content shows immediately even if API is slow
+- Re-seeded database (6 portfolio items were missing, now all 12 restored)
+- Verified all sections render correctly in browser
+
+Stage Summary:
+- Services section: 9 categories loading with fallback data
+- Portfolio section: 12 projects loading with fallback data
+- Configurator: 9 types + 26 add-ons + 5 page options loading with fallback data
+- All components now have 3-retry logic, 15s timeouts, and hardcoded fallback data
+- Database warmup triggers on page load to reduce Neon cold-start impact

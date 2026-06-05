@@ -1,7 +1,7 @@
 'use client'
 
 import { motion, useInView } from 'framer-motion'
-import { useRef, useState, useEffect } from 'react'
+import { useRef, useState, useEffect, useCallback } from 'react'
 import {
   Store,
   UtensilsCrossed,
@@ -12,6 +12,8 @@ import {
   GraduationCap,
   Briefcase,
   ShoppingCart,
+  AlertCircle,
+  RefreshCw,
   type LucideIcon,
 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
@@ -28,6 +30,19 @@ const iconMap: Record<string, LucideIcon> = {
   Briefcase,
   ShoppingCart,
 }
+
+// Fallback data used when API fails (Neon cold start, network issues, etc.)
+const fallbackCategories: CategoryDisplay[] = [
+  { icon: Store, name: 'Local Business', price: 4999, features: ['Shops', 'Salons', 'Clinics', 'Local Services'] },
+  { icon: UtensilsCrossed, name: 'Restaurant', price: 7999, features: ['Digital Menu', 'WhatsApp Orders', 'Food Gallery', 'Contact'] },
+  { icon: Coffee, name: 'Cafe', price: 7999, features: ['Menu Showcase', 'Online Inquiry', 'Gallery', 'Google Maps'] },
+  { icon: Hotel, name: 'Hotel', price: 12999, features: ['Room Listings', 'Inquiry System', 'Amenities', 'Gallery'] },
+  { icon: Stethoscope, name: 'Hospital', price: 9999, features: ['Doctor Profiles', 'Appointment Booking', 'Services', 'Emergency Contact'] },
+  { icon: Dumbbell, name: 'Gym', price: 8999, features: ['Membership Plans', 'Trainer Profiles', 'Gallery', 'Contact Forms'] },
+  { icon: GraduationCap, name: 'School', price: 14999, features: ['Admissions', 'Staff Information', 'Announcements', 'Gallery'] },
+  { icon: Briefcase, name: 'Business', price: 14999, features: ['Services', 'Lead Generation', 'Contact Forms', 'SEO Setup'] },
+  { icon: ShoppingCart, name: 'E-Commerce', price: 24999, features: ['Products', 'Cart', 'Checkout', 'Customer Accounts'] },
+]
 
 interface CategoryData {
   id: string
@@ -64,35 +79,58 @@ export function Categories() {
   const isInView = useInView(ref, { once: true, margin: '-100px' })
   const [categories, setCategories] = useState<CategoryDisplay[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
 
-  useEffect(() => {
-    async function fetchCategories() {
+  const fetchCategories = useCallback(async (retryCount = 3) => {
+    setLoading(true)
+    setError(false)
+
+    for (let attempt = 0; attempt < retryCount; attempt++) {
       try {
-        const res = await fetch('/api/categories')
+        const controller = new AbortController()
+        const timeout = setTimeout(() => controller.abort(), 15000) // 15s timeout
+
+        const res = await fetch('/api/categories', { signal: controller.signal })
+        clearTimeout(timeout)
+
         if (res.ok) {
           const data: CategoryData[] = await res.json()
-          const mapped: CategoryDisplay[] = data.map((cat) => ({
-            icon: iconMap[cat.icon] ?? Store,
-            name: cat.name,
-            price: cat.basePrice,
-            features: cat.features.split(',').map((f) => f.trim()),
-          }))
-          setCategories(mapped)
+          if (data && data.length > 0) {
+            const mapped: CategoryDisplay[] = data.map((cat) => ({
+              icon: iconMap[cat.icon] ?? Store,
+              name: cat.name,
+              price: cat.basePrice,
+              features: cat.features.split(',').map((f) => f.trim()),
+            }))
+            setCategories(mapped)
+            setLoading(false)
+            return
+          }
         }
       } catch (e) {
-        console.error('Failed to fetch categories:', e)
-      } finally {
-        setLoading(false)
+        console.warn(`Categories fetch attempt ${attempt + 1} failed:`, e)
+        if (attempt < retryCount - 1) {
+          // Wait before retrying (exponential backoff)
+          await new Promise((r) => setTimeout(r, 1000 * (attempt + 1)))
+        }
       }
     }
-    fetchCategories()
+
+    // All retries failed - use fallback data
+    console.warn('Using fallback categories data')
+    setCategories(fallbackCategories)
+    setError(true)
+    setLoading(false)
   }, [])
+
+  useEffect(() => {
+    fetchCategories()
+  }, [fetchCategories])
 
   const handleGetStarted = (categoryName: string) => {
     const element = document.getElementById('pricing')
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' })
-      // Dispatch a custom event to pre-select category in configurator
       setTimeout(() => {
         window.dispatchEvent(
           new CustomEvent('preselect-category', { detail: categoryName })
@@ -117,6 +155,23 @@ export function Categories() {
             <div className="w-12 h-1 bg-primary rounded-full" />
           </div>
         </div>
+
+        {/* Error banner with retry */}
+        {error && (
+          <div className="mb-6 flex items-center justify-center gap-3 p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg text-sm text-amber-700 dark:text-amber-300">
+            <AlertCircle className="h-4 w-4 flex-shrink-0" />
+            <span>Using cached data. Live prices may differ.</span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => fetchCategories()}
+              className="ml-auto gap-1 text-amber-700 dark:text-amber-300 hover:text-amber-900 dark:hover:text-amber-100"
+            >
+              <RefreshCw className="h-3 w-3" />
+              Retry
+            </Button>
+          </div>
+        )}
 
         {/* Cards Grid */}
         {loading ? (
