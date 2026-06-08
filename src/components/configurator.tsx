@@ -499,38 +499,268 @@ Project Description: ${formData.projectDescription || 'N/A'}`
                           exit={{ opacity: 0, x: -20 }}
                           transition={{ duration: 0.3 }}
                         >
-                          <h3 className="text-xl font-serif font-semibold mb-6">
+                          <h3 className="text-xl font-serif font-semibold mb-2">
                             Select Add-ons
                           </h3>
                           <p className="text-sm text-muted-foreground mb-4">
                             Enhance your website with powerful features
                           </p>
+
+                          {/* Category-specific recommended add-ons */}
+                          {selectedType === 'hospital' && (
+                            <div className="mb-6">
+                              <div className="flex items-center gap-2 mb-3">
+                                <Stethoscope className="h-4 w-4 text-primary" />
+                                <h4 className="text-sm font-semibold text-primary">
+                                  Recommended for Hospital
+                                </h4>
+                              </div>
+                              <div className="space-y-2 mb-4">
+                                {addOns
+                                  .filter((a) => [
+                                    'doctor-profiles', 'opd-registration', 'online-lab-reports',
+                                    'blood-bank', 'ambulance-booking', 'pharmacy-management',
+                                    'patient-portal', 'hospital-management-system', 'telemedicine',
+                                    'health-checkup-packages', 'insurance-tpa', 'bed-availability',
+                                    'emergency-sos', 'medical-records', 'vaccination-tracker',
+                                    'icu-status-dashboard', 'staff-duty-roster', 'hospital-billing',
+                                    'appointment-booking', 'live-chat', 'custom-forms',
+                                  ].includes(a.id))
+                                  .map((addon) => (
+                                    <div
+                                      key={addon.id}
+                                      onClick={() => toggleAddOn(addon.id)}
+                                      className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-all duration-200 ${
+                                        selectedAddOns.includes(addon.id)
+                                          ? 'border-primary bg-primary/5'
+                                          : 'border-primary/20 bg-primary/[0.02] hover:border-primary/40 hover:bg-primary/5'
+                                      }`}
+                                    >
+                                      <div className="flex items-center gap-3">
+                                        <Checkbox
+                                          checked={selectedAddOns.includes(addon.id)}
+                                          onCheckedChange={() => toggleAddOn(addon.id)}
+                                          onClick={(e) => e.stopPropagation()}
+                                        />
+                                        <span className="text-sm font-medium">
+                                          {addon.name}
+                                        </span>
+                                      </div>
+                                      <span className="text-sm font-semibold text-primary">
+                                        +₹{addon.price.toLocaleString('en-IN')}
+                                      </span>
+                                    </div>
+                                  ))}
+                              </div>
+                              <div className="h-px bg-border mb-4" />
+                              <h4 className="text-sm font-semibold text-muted-foreground mb-3">
+                                Other Add-ons
+                              </h4>
+                            </div>
+                          )}
+
+                          {selectedType === 'restaurant' && (
+                            <div className="mb-6">
+                              <div className="flex items-center gap-2 mb-3">
+                                <UtensilsCrossed className="h-4 w-4 text-primary" />
+                                <h4 className="text-sm font-semibold text-primary">
+                                  Recommended for Restaurant
+                                </h4>
+                              </div>
+                              <div className="space-y-2 mb-4">
+                                {addOns
+                                  .filter((a) => [
+                                    'food-ordering', 'payment-gateway', 'whatsapp-automation',
+                                    'google-reviews', 'social-media', 'google-business',
+                                    'multi-language', 'custom-forms', 'live-chat',
+                                  ].includes(a.id))
+                                  .map((addon) => (
+                                    <div
+                                      key={addon.id}
+                                      onClick={() => toggleAddOn(addon.id)}
+                                      className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-all duration-200 ${
+                                        selectedAddOns.includes(addon.id)
+                                          ? 'border-primary bg-primary/5'
+                                          : 'border-primary/20 bg-primary/[0.02] hover:border-primary/40 hover:bg-primary/5'
+                                      }`}
+                                    >
+                                      <div className="flex items-center gap-3">
+                                        <Checkbox
+                                          checked={selectedAddOns.includes(addon.id)}
+                                          onCheckedChange={() => toggleAddOn(addon.id)}
+                                          onClick={(e) => e.stopPropagation()}
+                                        />
+                                        <span className="text-sm font-medium">{addon.name}</span>
+                                      </div>
+                                      <span className="text-sm font-semibold text-primary">
+                                        +₹{addon.price.toLocaleString('en-IN')}
+                                      </span>
+                                    </div>
+                                  ))}
+                              </div>
+                              <div className="h-px bg-border mb-4" />
+                              <h4 className="text-sm font-semibold text-muted-foreground mb-3">
+                                Other Add-ons
+                              </h4>
+                            </div>
+                          )}
+
+                          {selectedType === 'hotel' && (
+                            <div className="mb-6">
+                              <div className="flex items-center gap-2 mb-3">
+                                <Hotel className="h-4 w-4 text-primary" />
+                                <h4 className="text-sm font-semibold text-primary">
+                                  Recommended for Hotel
+                                </h4>
+                              </div>
+                              <div className="space-y-2 mb-4">
+                                {addOns
+                                  .filter((a) => [
+                                    'hotel-booking', 'payment-gateway', 'customer-login',
+                                    'whatsapp-automation', 'email-automation', 'google-reviews',
+                                    'social-media', 'google-business', 'multi-language',
+                                    'custom-forms', 'live-chat', 'analytics-dashboard',
+                                  ].includes(a.id))
+                                  .map((addon) => (
+                                    <div
+                                      key={addon.id}
+                                      onClick={() => toggleAddOn(addon.id)}
+                                      className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-all duration-200 ${
+                                        selectedAddOns.includes(addon.id)
+                                          ? 'border-primary bg-primary/5'
+                                          : 'border-primary/20 bg-primary/[0.02] hover:border-primary/40 hover:bg-primary/5'
+                                      }`}
+                                    >
+                                      <div className="flex items-center gap-3">
+                                        <Checkbox
+                                          checked={selectedAddOns.includes(addon.id)}
+                                          onCheckedChange={() => toggleAddOn(addon.id)}
+                                          onClick={(e) => e.stopPropagation()}
+                                        />
+                                        <span className="text-sm font-medium">{addon.name}</span>
+                                      </div>
+                                      <span className="text-sm font-semibold text-primary">
+                                        +₹{addon.price.toLocaleString('en-IN')}
+                                      </span>
+                                    </div>
+                                  ))}
+                              </div>
+                              <div className="h-px bg-border mb-4" />
+                              <h4 className="text-sm font-semibold text-muted-foreground mb-3">
+                                Other Add-ons
+                              </h4>
+                            </div>
+                          )}
+
+                          {selectedType === 'school' && (
+                            <div className="mb-6">
+                              <div className="flex items-center gap-2 mb-3">
+                                <GraduationCap className="h-4 w-4 text-primary" />
+                                <h4 className="text-sm font-semibold text-primary">
+                                  Recommended for School
+                                </h4>
+                              </div>
+                              <div className="space-y-2 mb-4">
+                                {addOns
+                                  .filter((a) => [
+                                    'admin-dashboard', 'customer-login', 'sms-notifications',
+                                    'email-automation', 'whatsapp-automation', 'blog-system',
+                                    'gallery-system' ?? 'portfolio-system', 'google-business',
+                                    'social-media', 'custom-forms', 'multi-language',
+                                  ].includes(a.id))
+                                  .map((addon) => (
+                                    <div
+                                      key={addon.id}
+                                      onClick={() => toggleAddOn(addon.id)}
+                                      className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-all duration-200 ${
+                                        selectedAddOns.includes(addon.id)
+                                          ? 'border-primary bg-primary/5'
+                                          : 'border-primary/20 bg-primary/[0.02] hover:border-primary/40 hover:bg-primary/5'
+                                      }`}
+                                    >
+                                      <div className="flex items-center gap-3">
+                                        <Checkbox
+                                          checked={selectedAddOns.includes(addon.id)}
+                                          onCheckedChange={() => toggleAddOn(addon.id)}
+                                          onClick={(e) => e.stopPropagation()}
+                                        />
+                                        <span className="text-sm font-medium">{addon.name}</span>
+                                      </div>
+                                      <span className="text-sm font-semibold text-primary">
+                                        +₹{addon.price.toLocaleString('en-IN')}
+                                      </span>
+                                    </div>
+                                  ))}
+                              </div>
+                              <div className="h-px bg-border mb-4" />
+                              <h4 className="text-sm font-semibold text-muted-foreground mb-3">
+                                Other Add-ons
+                              </h4>
+                            </div>
+                          )}
+
                           <div className="space-y-2 max-h-[450px] overflow-y-auto custom-scrollbar pr-2">
-                            {addOns.map((addon) => (
-                              <div
-                                key={addon.id}
-                                onClick={() => toggleAddOn(addon.id)}
-                                className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-all duration-200 ${
-                                  selectedAddOns.includes(addon.id)
-                                    ? 'border-primary bg-primary/5'
-                                    : 'border-border hover:border-primary/30'
-                                }`}
-                              >
-                                <div className="flex items-center gap-3">
-                                  <Checkbox
-                                    checked={selectedAddOns.includes(addon.id)}
-                                    onCheckedChange={() => toggleAddOn(addon.id)}
-                                    onClick={(e) => e.stopPropagation()}
-                                  />
-                                  <span className="text-sm font-medium">
-                                    {addon.name}
+                            {/* Show recommended items filtered out from the general list for category types */}
+                            {(selectedType === 'hospital' || selectedType === 'restaurant' || selectedType === 'hotel' || selectedType === 'school')
+                              ? addOns
+                                  .filter((a) => {
+                                    if (selectedType === 'hospital') return !['doctor-profiles', 'opd-registration', 'online-lab-reports', 'blood-bank', 'ambulance-booking', 'pharmacy-management', 'patient-portal', 'hospital-management-system', 'telemedicine', 'health-checkup-packages', 'insurance-tpa', 'bed-availability', 'emergency-sos', 'medical-records', 'vaccination-tracker', 'icu-status-dashboard', 'staff-duty-roster', 'hospital-billing', 'appointment-booking', 'live-chat', 'custom-forms'].includes(a.id)
+                                    if (selectedType === 'restaurant') return !['food-ordering', 'payment-gateway', 'whatsapp-automation', 'google-reviews', 'social-media', 'google-business', 'multi-language', 'custom-forms', 'live-chat'].includes(a.id)
+                                    if (selectedType === 'hotel') return !['hotel-booking', 'payment-gateway', 'customer-login', 'whatsapp-automation', 'email-automation', 'google-reviews', 'social-media', 'google-business', 'multi-language', 'custom-forms', 'live-chat', 'analytics-dashboard'].includes(a.id)
+                                    if (selectedType === 'school') return !['admin-dashboard', 'customer-login', 'sms-notifications', 'email-automation', 'whatsapp-automation', 'blog-system', 'portfolio-system', 'google-business', 'social-media', 'custom-forms', 'multi-language'].includes(a.id)
+                                    return true
+                                  })
+                                  .map((addon) => (
+                                    <div
+                                      key={addon.id}
+                                      onClick={() => toggleAddOn(addon.id)}
+                                      className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-all duration-200 ${
+                                        selectedAddOns.includes(addon.id)
+                                          ? 'border-primary bg-primary/5'
+                                          : 'border-border hover:border-primary/30'
+                                      }`}
+                                    >
+                                      <div className="flex items-center gap-3">
+                                        <Checkbox
+                                          checked={selectedAddOns.includes(addon.id)}
+                                          onCheckedChange={() => toggleAddOn(addon.id)}
+                                          onClick={(e) => e.stopPropagation()}
+                                        />
+                                        <span className="text-sm font-medium">
+                                          {addon.name}
+                                        </span>
+                                      </div>
+                                      <span className="text-sm font-semibold text-primary">
+                                        +₹{addon.price.toLocaleString('en-IN')}
+                                      </span>
+                                    </div>
+                                  ))
+                              : addOns.map((addon) => (
+                                <div
+                                  key={addon.id}
+                                  onClick={() => toggleAddOn(addon.id)}
+                                  className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-all duration-200 ${
+                                    selectedAddOns.includes(addon.id)
+                                      ? 'border-primary bg-primary/5'
+                                      : 'border-border hover:border-primary/30'
+                                  }`}
+                                >
+                                  <div className="flex items-center gap-3">
+                                    <Checkbox
+                                      checked={selectedAddOns.includes(addon.id)}
+                                      onCheckedChange={() => toggleAddOn(addon.id)}
+                                      onClick={(e) => e.stopPropagation()}
+                                    />
+                                    <span className="text-sm font-medium">
+                                      {addon.name}
+                                    </span>
+                                  </div>
+                                  <span className="text-sm font-semibold text-primary">
+                                    +₹{addon.price.toLocaleString('en-IN')}
                                   </span>
                                 </div>
-                                <span className="text-sm font-semibold text-primary">
-                                  +₹{addon.price.toLocaleString('en-IN')}
-                                </span>
-                              </div>
-                            ))}
+                              ))
+                            }
                           </div>
                         </motion.div>
                       )}
