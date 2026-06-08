@@ -19,7 +19,7 @@ async function main() {
   const categories = [
     { name: 'Local Business', slug: 'local-business', icon: 'Store', basePrice: 4999, features: 'Shops,Salons,Clinics,Local Services', order: 1 },
     { name: 'Restaurant', slug: 'restaurant', icon: 'UtensilsCrossed', basePrice: 7999, features: 'Digital Menu,WhatsApp Orders,Food Gallery,Contact', order: 2 },
-    { name: 'Cafe', slug: 'cafe', icon: 'Coffee', basePrice: 7999, features: 'Menu Showcase,Online Inquiry,Gallery,Google Maps', order: 3 },
+    { name: 'Cafe', slug: 'cafe', icon: 'Coffee', basePrice: 7999, features: 'Digital Menu,Online Ordering,Table Reservation,Loyalty Program', order: 3 },
     { name: 'Hotel', slug: 'hotel', icon: 'Hotel', basePrice: 12999, features: 'Room Listings,Inquiry System,Amenities,Gallery', order: 4 },
     { name: 'Hospital', slug: 'hospital', icon: 'Stethoscope', basePrice: 9999, features: 'Doctor Profiles,Appointment Booking,Services,Emergency Contact', order: 5 },
     { name: 'Gym', slug: 'gym', icon: 'Dumbbell', basePrice: 8999, features: 'Membership Plans,Trainer Profiles,Gallery,Contact Forms', order: 6 },
@@ -35,6 +35,7 @@ async function main() {
 
   // Seed Add-ons
   const addons = [
+    // General Add-ons
     { name: 'Payment Gateway', slug: 'payment-gateway', price: 3000, order: 1 },
     { name: 'AI Chatbot', slug: 'ai-chatbot', price: 5000, order: 2 },
     { name: 'Voice AI Assistant', slug: 'voice-ai', price: 10000, order: 3 },
@@ -61,6 +62,44 @@ async function main() {
     { name: 'Analytics Dashboard', slug: 'analytics-dashboard', price: 2500, order: 24 },
     { name: 'Live Chat Support', slug: 'live-chat', price: 2000, order: 25 },
     { name: 'Custom Forms', slug: 'custom-forms', price: 1500, order: 26 },
+    // Hospital-Specific Add-ons
+    { name: 'Doctor Profiles & Directory', slug: 'doctor-profiles', price: 4000, order: 27 },
+    { name: 'OPD Online Registration', slug: 'opd-registration', price: 5000, order: 28 },
+    { name: 'Online Lab Reports', slug: 'online-lab-reports', price: 4000, order: 29 },
+    { name: 'Blood Bank Directory', slug: 'blood-bank', price: 3000, order: 30 },
+    { name: 'Ambulance Booking System', slug: 'ambulance-booking', price: 3500, order: 31 },
+    { name: 'Pharmacy Management', slug: 'pharmacy-management', price: 6000, order: 32 },
+    { name: 'Patient Portal', slug: 'patient-portal', price: 7000, order: 33 },
+    { name: 'Hospital Management System (HMS)', slug: 'hospital-management-system', price: 15000, order: 34 },
+    { name: 'Telemedicine / Video Consultation', slug: 'telemedicine', price: 8000, order: 35 },
+    { name: 'Health Checkup Packages', slug: 'health-checkup-packages', price: 3500, order: 36 },
+    { name: 'Insurance / TPA Integration', slug: 'insurance-tpa', price: 5000, order: 37 },
+    { name: 'Bed Availability Tracker', slug: 'bed-availability', price: 4000, order: 38 },
+    { name: 'Emergency SOS Button', slug: 'emergency-sos', price: 3000, order: 39 },
+    { name: 'Medical Records Access', slug: 'medical-records', price: 6000, order: 40 },
+    { name: 'Vaccination Tracker', slug: 'vaccination-tracker', price: 3000, order: 41 },
+    { name: 'ICU Status Dashboard', slug: 'icu-status-dashboard', price: 5000, order: 42 },
+    { name: 'Staff Duty Roster', slug: 'staff-duty-roster', price: 3500, order: 43 },
+    { name: 'Hospital Billing System', slug: 'hospital-billing', price: 6000, order: 44 },
+    // Cafe-Specific Add-ons
+    { name: 'Digital Menu Board', slug: 'digital-menu-board', price: 3000, order: 45 },
+    { name: 'Online Ordering & Delivery', slug: 'cafe-online-ordering', price: 5000, order: 46 },
+    { name: 'Table Reservation System', slug: 'table-reservation', price: 3500, order: 47 },
+    { name: 'Loyalty & Rewards Program', slug: 'loyalty-program', price: 4000, order: 48 },
+    { name: 'Wi-Fi Access Portal', slug: 'wifi-portal', price: 2000, order: 49 },
+    { name: 'Event Calendar & Booking', slug: 'event-calendar', price: 2500, order: 50 },
+    { name: 'Recipe / Brew Blog', slug: 'recipe-blog', price: 2500, order: 51 },
+    { name: 'Gift Cards System', slug: 'gift-cards', price: 3000, order: 52 },
+    { name: 'Catering Inquiry Form', slug: 'catering-inquiry', price: 1500, order: 53 },
+    { name: 'Merchandise Store', slug: 'merchandise-store', price: 5000, order: 54 },
+    { name: 'Coffee Subscription Plan', slug: 'coffee-subscription', price: 4000, order: 55 },
+    { name: 'Barista / Team Profiles', slug: 'barista-profiles', price: 1500, order: 56 },
+    { name: 'Nutrition & Allergen Info', slug: 'nutrition-info', price: 2000, order: 57 },
+    { name: 'Photo Gallery', slug: 'cafe-gallery', price: 2000, order: 58 },
+    { name: 'Customer Reviews Section', slug: 'customer-reviews', price: 1500, order: 59 },
+    { name: 'Happy Hour & Specials Display', slug: 'happy-hour-specials', price: 2000, order: 60 },
+    { name: 'Location & Hours Widget', slug: 'location-hours', price: 1500, order: 61 },
+    { name: 'Takeaway & Pickup System', slug: 'takeaway-pickup', price: 3500, order: 62 },
   ]
 
   for (const addon of addons) {

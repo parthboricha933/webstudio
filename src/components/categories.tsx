@@ -35,7 +35,7 @@ const iconMap: Record<string, LucideIcon> = {
 const fallbackCategories: CategoryDisplay[] = [
   { icon: Store, name: 'Local Business', price: 4999, features: ['Shops', 'Salons', 'Clinics', 'Local Services'] },
   { icon: UtensilsCrossed, name: 'Restaurant', price: 7999, features: ['Digital Menu', 'WhatsApp Orders', 'Food Gallery', 'Contact'] },
-  { icon: Coffee, name: 'Cafe', price: 7999, features: ['Menu Showcase', 'Online Inquiry', 'Gallery', 'Google Maps'] },
+  { icon: Coffee, name: 'Cafe', price: 7999, features: ['Digital Menu', 'Online Ordering', 'Table Reservation', 'Loyalty Program'] },
   { icon: Hotel, name: 'Hotel', price: 12999, features: ['Room Listings', 'Inquiry System', 'Amenities', 'Gallery'] },
   { icon: Stethoscope, name: 'Hospital', price: 9999, features: ['Doctor Profiles', 'Appointment Booking', 'Services', 'Emergency Contact'] },
   { icon: Dumbbell, name: 'Gym', price: 8999, features: ['Membership Plans', 'Trainer Profiles', 'Gallery', 'Contact Forms'] },

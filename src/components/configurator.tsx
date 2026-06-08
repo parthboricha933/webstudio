@@ -142,6 +142,7 @@ export function Configurator() {
     { id: 'custom-pages', label: 'Custom', description: 'Fully custom pages', extra: 12000 },
   ])
   const [addOns, setAddOns] = useState<AddOnDisplay[]>([
+    // General Add-ons
     { id: 'payment-gateway', name: 'Payment Gateway', price: 3000 },
     { id: 'ai-chatbot', name: 'AI Chatbot', price: 5000 },
     { id: 'voice-ai', name: 'Voice AI Assistant', price: 10000 },
@@ -168,6 +169,44 @@ export function Configurator() {
     { id: 'analytics-dashboard', name: 'Analytics Dashboard', price: 2500 },
     { id: 'live-chat', name: 'Live Chat Support', price: 2000 },
     { id: 'custom-forms', name: 'Custom Forms', price: 1500 },
+    // Hospital-Specific Add-ons
+    { id: 'doctor-profiles', name: 'Doctor Profiles & Directory', price: 4000 },
+    { id: 'opd-registration', name: 'OPD Online Registration', price: 5000 },
+    { id: 'online-lab-reports', name: 'Online Lab Reports', price: 4000 },
+    { id: 'blood-bank', name: 'Blood Bank Directory', price: 3000 },
+    { id: 'ambulance-booking', name: 'Ambulance Booking System', price: 3500 },
+    { id: 'pharmacy-management', name: 'Pharmacy Management', price: 6000 },
+    { id: 'patient-portal', name: 'Patient Portal', price: 7000 },
+    { id: 'hospital-management-system', name: 'Hospital Management System (HMS)', price: 15000 },
+    { id: 'telemedicine', name: 'Telemedicine / Video Consultation', price: 8000 },
+    { id: 'health-checkup-packages', name: 'Health Checkup Packages', price: 3500 },
+    { id: 'insurance-tpa', name: 'Insurance / TPA Integration', price: 5000 },
+    { id: 'bed-availability', name: 'Bed Availability Tracker', price: 4000 },
+    { id: 'emergency-sos', name: 'Emergency SOS Button', price: 3000 },
+    { id: 'medical-records', name: 'Medical Records Access', price: 6000 },
+    { id: 'vaccination-tracker', name: 'Vaccination Tracker', price: 3000 },
+    { id: 'icu-status-dashboard', name: 'ICU Status Dashboard', price: 5000 },
+    { id: 'staff-duty-roster', name: 'Staff Duty Roster', price: 3500 },
+    { id: 'hospital-billing', name: 'Hospital Billing System', price: 6000 },
+    // Cafe-Specific Add-ons
+    { id: 'digital-menu-board', name: 'Digital Menu Board', price: 3000 },
+    { id: 'cafe-online-ordering', name: 'Online Ordering & Delivery', price: 5000 },
+    { id: 'table-reservation', name: 'Table Reservation System', price: 3500 },
+    { id: 'loyalty-program', name: 'Loyalty & Rewards Program', price: 4000 },
+    { id: 'wifi-portal', name: 'Wi-Fi Access Portal', price: 2000 },
+    { id: 'event-calendar', name: 'Event Calendar & Booking', price: 2500 },
+    { id: 'recipe-blog', name: 'Recipe / Brew Blog', price: 2500 },
+    { id: 'gift-cards', name: 'Gift Cards System', price: 3000 },
+    { id: 'catering-inquiry', name: 'Catering Inquiry Form', price: 1500 },
+    { id: 'merchandise-store', name: 'Merchandise Store', price: 5000 },
+    { id: 'coffee-subscription', name: 'Coffee Subscription Plan', price: 4000 },
+    { id: 'barista-profiles', name: 'Barista / Team Profiles', price: 1500 },
+    { id: 'nutrition-info', name: 'Nutrition & Allergen Info', price: 2000 },
+    { id: 'cafe-gallery', name: 'Photo Gallery', price: 2000 },
+    { id: 'customer-reviews', name: 'Customer Reviews Section', price: 1500 },
+    { id: 'happy-hour-specials', name: 'Happy Hour & Specials Display', price: 2000 },
+    { id: 'location-hours', name: 'Location & Hours Widget', price: 1500 },
+    { id: 'takeaway-pickup', name: 'Takeaway & Pickup System', price: 3500 },
   ])
   const [loading, setLoading] = useState(false)
 
@@ -665,8 +704,60 @@ Project Description: ${formData.projectDescription || 'N/A'}`
                                   .filter((a) => [
                                     'admin-dashboard', 'customer-login', 'sms-notifications',
                                     'email-automation', 'whatsapp-automation', 'blog-system',
-                                    'gallery-system' ?? 'portfolio-system', 'google-business',
+                                    'portfolio-system', 'google-business',
                                     'social-media', 'custom-forms', 'multi-language',
+                                  ].includes(a.id))
+                                  .map((addon) => (
+                                    <div
+                                      key={addon.id}
+                                      onClick={() => toggleAddOn(addon.id)}
+                                      className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-all duration-200 ${
+                                        selectedAddOns.includes(addon.id)
+                                          ? 'border-primary bg-primary/5'
+                                          : 'border-primary/20 bg-primary/[0.02] hover:border-primary/40 hover:bg-primary/5'
+                                      }`}
+                                    >
+                                      <div className="flex items-center gap-3">
+                                        <Checkbox
+                                          checked={selectedAddOns.includes(addon.id)}
+                                          onCheckedChange={() => toggleAddOn(addon.id)}
+                                          onClick={(e) => e.stopPropagation()}
+                                        />
+                                        <span className="text-sm font-medium">{addon.name}</span>
+                                      </div>
+                                      <span className="text-sm font-semibold text-primary">
+                                        +₹{addon.price.toLocaleString('en-IN')}
+                                      </span>
+                                    </div>
+                                  ))}
+                              </div>
+                              <div className="h-px bg-border mb-4" />
+                              <h4 className="text-sm font-semibold text-muted-foreground mb-3">
+                                Other Add-ons
+                              </h4>
+                            </div>
+                          )}
+
+                          {selectedType === 'cafe' && (
+                            <div className="mb-6">
+                              <div className="flex items-center gap-2 mb-3">
+                                <Coffee className="h-4 w-4 text-primary" />
+                                <h4 className="text-sm font-semibold text-primary">
+                                  Recommended for Cafe
+                                </h4>
+                              </div>
+                              <div className="space-y-2 mb-4">
+                                {addOns
+                                  .filter((a) => [
+                                    'digital-menu-board', 'cafe-online-ordering', 'table-reservation',
+                                    'loyalty-program', 'wifi-portal', 'event-calendar',
+                                    'recipe-blog', 'gift-cards', 'catering-inquiry',
+                                    'merchandise-store', 'coffee-subscription', 'barista-profiles',
+                                    'nutrition-info', 'cafe-gallery', 'customer-reviews',
+                                    'happy-hour-specials', 'location-hours', 'takeaway-pickup',
+                                    'payment-gateway', 'whatsapp-automation', 'google-reviews',
+                                    'social-media', 'google-business', 'multi-language',
+                                    'custom-forms', 'live-chat',
                                   ].includes(a.id))
                                   .map((addon) => (
                                     <div
@@ -701,13 +792,14 @@ Project Description: ${formData.projectDescription || 'N/A'}`
 
                           <div className="space-y-2 max-h-[450px] overflow-y-auto custom-scrollbar pr-2">
                             {/* Show recommended items filtered out from the general list for category types */}
-                            {(selectedType === 'hospital' || selectedType === 'restaurant' || selectedType === 'hotel' || selectedType === 'school')
+                            {(selectedType === 'hospital' || selectedType === 'restaurant' || selectedType === 'hotel' || selectedType === 'school' || selectedType === 'cafe')
                               ? addOns
                                   .filter((a) => {
                                     if (selectedType === 'hospital') return !['doctor-profiles', 'opd-registration', 'online-lab-reports', 'blood-bank', 'ambulance-booking', 'pharmacy-management', 'patient-portal', 'hospital-management-system', 'telemedicine', 'health-checkup-packages', 'insurance-tpa', 'bed-availability', 'emergency-sos', 'medical-records', 'vaccination-tracker', 'icu-status-dashboard', 'staff-duty-roster', 'hospital-billing', 'appointment-booking', 'live-chat', 'custom-forms'].includes(a.id)
                                     if (selectedType === 'restaurant') return !['food-ordering', 'payment-gateway', 'whatsapp-automation', 'google-reviews', 'social-media', 'google-business', 'multi-language', 'custom-forms', 'live-chat'].includes(a.id)
                                     if (selectedType === 'hotel') return !['hotel-booking', 'payment-gateway', 'customer-login', 'whatsapp-automation', 'email-automation', 'google-reviews', 'social-media', 'google-business', 'multi-language', 'custom-forms', 'live-chat', 'analytics-dashboard'].includes(a.id)
                                     if (selectedType === 'school') return !['admin-dashboard', 'customer-login', 'sms-notifications', 'email-automation', 'whatsapp-automation', 'blog-system', 'portfolio-system', 'google-business', 'social-media', 'custom-forms', 'multi-language'].includes(a.id)
+                                    if (selectedType === 'cafe') return !['digital-menu-board', 'cafe-online-ordering', 'table-reservation', 'loyalty-program', 'wifi-portal', 'event-calendar', 'recipe-blog', 'gift-cards', 'catering-inquiry', 'merchandise-store', 'coffee-subscription', 'barista-profiles', 'nutrition-info', 'cafe-gallery', 'customer-reviews', 'happy-hour-specials', 'location-hours', 'takeaway-pickup', 'payment-gateway', 'whatsapp-automation', 'google-reviews', 'social-media', 'google-business', 'multi-language', 'custom-forms', 'live-chat'].includes(a.id)
                                     return true
                                   })
                                   .map((addon) => (
